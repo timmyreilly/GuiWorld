@@ -24,7 +24,7 @@ public class GrpcServerMonitoringService : IGrpcServerMonitoringService, IDispos
         var grpcEndpoint = configuration.GetConnectionString("GrpcServerMonitoring") ?? "https://localhost:5001";
         
         _channel = GrpcChannel.ForAddress(grpcEndpoint);
-        _client = new ServerMonitoringService.ServerMonitoringServiceClient(_channel);
+        _client = new ServerWorld3D.Grpc.ServerMonitoringService.ServerMonitoringServiceClient(_channel);
     }
 
     public async Task<List<ServerState>> GetServerStatesAsync(List<string>? serverIds = null)
@@ -85,9 +85,9 @@ public class GrpcServerMonitoringService : IGrpcServerMonitoringService, IDispos
 
         using var call = _client.StreamServerUpdates(request);
 
-        await foreach (var update in call.ResponseStream.ReadAllAsync())
+        while (await call.ResponseStream.MoveNext())
         {
-            yield return ConvertFromGrpcMessage(update);
+            yield return ConvertFromGrpcMessage(call.ResponseStream.Current);
         }
     }
 

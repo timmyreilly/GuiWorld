@@ -15,7 +15,7 @@ public interface IGrpcServerMonitoringService
 public class GrpcServerMonitoringService : IGrpcServerMonitoringService, IDisposable
 {
     private readonly GrpcChannel _channel;
-    private readonly ServerMonitoringService.ServerMonitoringServiceClient _client;
+    private readonly ServerWorld3D.Grpc.ServerMonitoringService.ServerMonitoringServiceClient _client;
     private readonly ILogger<GrpcServerMonitoringService> _logger;
 
     public GrpcServerMonitoringService(IConfiguration configuration, ILogger<GrpcServerMonitoringService> logger)

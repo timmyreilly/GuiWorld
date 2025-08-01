@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+option csharp_namespace = "ServerWorld3D.Grpc";
+
+package servermonitoring;
+
+service ServerMonitoringService {
+  rpc GetServerStates (GetServerStatesRequest) returns (GetServerStatesResponse);
+  rpc GetServerState (GetServerStateRequest) returns (ServerStateMessage);
+  rpc StreamServerUpdates (StreamServerUpdatesRequest) returns (stream ServerStateMessage);
+  rpc UpdateServerConfiguration (UpdateServerConfigRequest) returns (UpdateServerConfigResponse);
+}
+
+message GetServerStatesRequest {
+  repeated string server_ids = 1;
+  bool include_metrics = 2;
+}
+
+message GetServerStatesResponse {
+  repeated ServerStateMessage servers = 1;
+  int64 timestamp = 2;
+}
+
+message GetServerStateRequest {
+  string server_id = 1;
+  bool include_metrics = 2;
+}
+
+message StreamServerUpdatesRequest {
+  repeated string server_ids = 1;
+  int32 update_interval_seconds = 2;
+}
+
+message UpdateServerConfigRequest {
+  string server_id = 1;
+  ServerConfigMessage config = 2;
+}
+
+message UpdateServerConfigResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ServerStateMessage {
+  string id = 1;
+  string name = 2;
+  ServerStatusEnum status = 3;
+  double cpu_usage = 4;
+  double memory_usage = 5;
+  double disk_usage = 6;
+  double network_in = 7;
+  double network_out = 8;
+  int64 last_updated = 9;
+  Vector3Message position = 10;
+  repeated string active_alerts = 11;
+  map<string, string> custom_metrics = 12;
+}
+
+message Vector3Message {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message ServerConfigMessage {
+  string name = 1;
+  Vector3Message position = 2;
+  bool monitoring_enabled = 3;
+  int32 alert_threshold_cpu = 4;
+  int32 alert_threshold_memory = 5;
+  int32 alert_threshold_disk = 6;
+}
+
+enum ServerStatusEnum {
+  UNKNOWN = 0;
+  HEALTHY = 1;
+  WARNING = 2;
+  CRITICAL = 3;
+  OFFLINE = 4;
+  MAINTENANCE = 5;
+}

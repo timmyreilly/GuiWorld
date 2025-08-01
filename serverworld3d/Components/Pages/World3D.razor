@@ -1,0 +1,331 @@
+@page "/world"
+@using ServerWorld3D.Models
+@using ServerWorld3D.Services
+@using System.Text.Json
+@inject IServerMonitoringService ServerMonitoringService
+@inject IJSRuntime JSRuntime
+@inject ILogger<World3D> Logger
+@implements IAsyncDisposable
+
+<PageTitle>Server World 3D</PageTitle>
+
+<div class="world3d-container">
+    <div class="world3d-header">
+        <h1>Server World 3D</h1>
+        <div class="world3d-controls">
+            <div class="connection-status @(isConnected ? "connected" : "disconnected")">
+                @(isConnected ? "🟢 Connected" : "🔴 Disconnected")
+            </div>
+            <div class="server-count">
+                Servers: @serverCount
+            </div>
+        </div>
+    </div>
+
+    <div class="world3d-main">
+        <div id="world3d-canvas" class="world3d-canvas"></div>
+        
+        <div class="world3d-sidebar">
+            <div class="server-list">
+                <h3>Servers</h3>
+                @if (servers.Any())
+                {
+                    @foreach (var server in servers.Values.OrderBy(s => s.Name))
+                    {
+                        <div class="server-item @GetStatusClass(server.Status)" @onclick="() => FocusOnServer(server.Id)">
+                            <div class="server-name">@server.Name</div>
+                            <div class="server-metrics">
+                                <span>CPU: @server.CpuUsage.ToString("F1")%</span>
+                                <span>Memory: @server.MemoryUsage.ToString("F1")%</span>
+                            </div>
+                            @if (server.ActiveAlerts.Any())
+                            {
+                                <div class="server-alerts">
+                                    @foreach (var alert in server.ActiveAlerts)
+                                    {
+                                        <span class="alert">⚠️ @alert</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="no-servers">No servers available</div>
+                }
+            </div>
+
+            <div class="character-info">
+                <h3>Character</h3>
+                <div class="character-position">
+                    Position: (@characterPosition.X.ToString("F1"), @characterPosition.Y.ToString("F1"), @characterPosition.Z.ToString("F1"))
+                </div>
+                <div class="movement-instructions">
+                    <h4>Controls:</h4>
+                    <ul>
+                        <li>WASD / Arrow Keys: Move</li>
+                        <li>Q/E: Rotate</li>
+                        <li>Mouse: Camera control</li>
+                        <li>Click: Interact with dashboards</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="world-stats">
+                <h3>Statistics</h3>
+                <div class="stat-item">
+                    <span>Healthy:</span>
+                    <span class="healthy">@servers.Values.Count(s => s.Status == ServerStatus.Healthy)</span>
+                </div>
+                <div class="stat-item">
+                    <span>Warning:</span>
+                    <span class="warning">@servers.Values.Count(s => s.Status == ServerStatus.Warning)</span>
+                </div>
+                <div class="stat-item">
+                    <span>Critical:</span>
+                    <span class="critical">@servers.Values.Count(s => s.Status == ServerStatus.Critical)</span>
+                </div>
+                <div class="stat-item">
+                    <span>Offline:</span>
+                    <span class="offline">@servers.Values.Count(s => s.Status == ServerStatus.Offline)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (selectedServer != null)
+{
+    <div class="server-modal" @onclick="CloseServerModal">
+        <div class="server-modal-content" @onclick:stopPropagation="true">
+            <div class="server-modal-header">
+                <h2>@selectedServer.Name</h2>
+                <button class="close-button" @onclick="CloseServerModal">×</button>
+            </div>
+            <div class="server-modal-body">
+                <div class="server-details">
+                    <div class="detail-group">
+                        <h3>Status</h3>
+                        <div class="status-badge @GetStatusClass(selectedServer.Status)">
+                            @selectedServer.Status
+                        </div>
+                    </div>
+                    
+                    <div class="detail-group">
+                        <h3>Metrics</h3>
+                        <div class="metrics-grid">
+                            <div class="metric">
+                                <span>CPU Usage:</span>
+                                <span>@selectedServer.CpuUsage.ToString("F2")%</span>
+                            </div>
+                            <div class="metric">
+                                <span>Memory Usage:</span>
+                                <span>@selectedServer.MemoryUsage.ToString("F2")%</span>
+                            </div>
+                            <div class="metric">
+                                <span>Disk Usage:</span>
+                                <span>@selectedServer.DiskUsage.ToString("F2")%</span>
+                            </div>
+                            <div class="metric">
+                                <span>Network In:</span>
+                                <span>@selectedServer.NetworkIn.ToString("F2") MB/s</span>
+                            </div>
+                            <div class="metric">
+                                <span>Network Out:</span>
+                                <span>@selectedServer.NetworkOut.ToString("F2") MB/s</span>
+                            </div>
+                            <div class="metric">
+                                <span>Last Updated:</span>
+                                <span>@selectedServer.LastUpdated.ToString("HH:mm:ss")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (selectedServer.ActiveAlerts.Any())
+                    {
+                        <div class="detail-group">
+                            <h3>Active Alerts</h3>
+                            <div class="alerts-list">
+                                @foreach (var alert in selectedServer.ActiveAlerts)
+                                {
+                                    <div class="alert-item">⚠️ @alert</div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (selectedServer.CustomMetrics.Any())
+                    {
+                        <div class="detail-group">
+                            <h3>Additional Metrics</h3>
+                            <div class="custom-metrics">
+                                @foreach (var metric in selectedServer.CustomMetrics)
+                                {
+                                    <div class="custom-metric">
+                                        <span>@metric.Key:</span>
+                                        <span>@metric.Value</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private Dictionary<string, ServerState> servers = new();
+    private ServerState? selectedServer;
+    private Vector3 characterPosition = new();
+    private int serverCount = 0;
+    private bool isConnected = false;
+    private DotNetObjectReference<World3D>? dotNetObjectRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                dotNetObjectRef = DotNetObjectReference.Create(this);
+                
+                // Initialize the 3D world
+                await JSRuntime.InvokeVoidAsync("initializeServerWorld3D", "world3d-canvas", dotNetObjectRef);
+                
+                // Load initial server states
+                await LoadServerStates();
+                
+                // Start real-time updates
+                await ServerMonitoringService.StartRealtimeUpdatesAsync();
+                ServerMonitoringService.ServerStateUpdated += OnServerStateUpdated;
+                
+                isConnected = true;
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to initialize 3D world");
+            }
+        }
+    }
+
+    private async Task LoadServerStates()
+    {
+        try
+        {
+            var serverList = await ServerMonitoringService.GetAllServerStatesAsync();
+            servers.Clear();
+            
+            foreach (var server in serverList)
+            {
+                servers[server.Id] = server;
+            }
+            
+            serverCount = servers.Count;
+            
+            // Send servers to JavaScript
+            var serversJson = JsonSerializer.Serialize(serverList);
+            await JSRuntime.InvokeVoidAsync("updateServersInWorld", serversJson);
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load server states");
+        }
+    }
+
+    private async void OnServerStateUpdated(object? sender, ServerState serverState)
+    {
+        try
+        {
+            servers[serverState.Id] = serverState;
+            serverCount = servers.Count;
+            
+            // Update the 3D world
+            var serverJson = JsonSerializer.Serialize(serverState);
+            await JSRuntime.InvokeVoidAsync("updateServerInWorld", serverJson);
+            
+            // Update selected server if it's the one being viewed
+            if (selectedServer?.Id == serverState.Id)
+            {
+                selectedServer = serverState;
+            }
+            
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to update server state in UI");
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnDashboardClicked(string serverId)
+    {
+        if (servers.TryGetValue(serverId, out var server))
+        {
+            selectedServer = server;
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnCharacterPositionChanged(float x, float y, float z)
+    {
+        characterPosition = new Vector3(x, y, z);
+        StateHasChanged();
+    }
+
+    private async Task FocusOnServer(string serverId)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("focusOnServer", serverId);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to focus on server {ServerId}", serverId);
+        }
+    }
+
+    private void CloseServerModal()
+    {
+        selectedServer = null;
+        StateHasChanged();
+    }
+
+    private string GetStatusClass(ServerStatus status)
+    {
+        return status switch
+        {
+            ServerStatus.Healthy => "healthy",
+            ServerStatus.Warning => "warning",
+            ServerStatus.Critical => "critical",
+            ServerStatus.Offline => "offline",
+            ServerStatus.Maintenance => "maintenance",
+            _ => "unknown"
+        };
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (ServerMonitoringService != null)
+            {
+                ServerMonitoringService.ServerStateUpdated -= OnServerStateUpdated;
+                await ServerMonitoringService.StopRealtimeUpdatesAsync();
+            }
+            
+            dotNetObjectRef?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error during component disposal");
+        }
+    }
+}

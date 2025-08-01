@@ -1,0 +1,104 @@
+# .NET
+bin/
+obj/
+out/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ASP.NET / Blazor
+wwwroot/css/app.css
+wwwroot/js/*.js
+wwwroot/lib/
+**/appsettings.Development.json
+
+# Logs
+*.log
+*.tlog
+*.vshost.*
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+[Bb]uild[Ll]og.*
+
+# Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# DotCover
+.idea/.dotCover
+
+# User-specific files
+*.vspscc
+*.vssscc
+
+# JetBrains Rider
+.idea/
+
+# Visual Studio for Mac
+.vscode/
+
+# Tye
+.tye/
+
+# Others
+*.db
+*.sqlite
+.env
+.env.*
+
+# Node modules (if using JS interop)
+node_modules/
+
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-wheel-metadata/
+.eggs/
+*.egg-info/
+*.egg
+dist/
+build/
+*.so
+.coverage
+*.log
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+pnpm-lock.yaml
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

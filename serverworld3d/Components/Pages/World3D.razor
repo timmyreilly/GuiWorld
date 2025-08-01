@@ -264,20 +264,22 @@
     }
 
     [JSInvokable]
-    public async Task OnDashboardClicked(string serverId)
+    public Task OnDashboardClicked(string serverId)
     {
         if (servers.TryGetValue(serverId, out var server))
         {
             selectedServer = server;
             StateHasChanged();
         }
+        return Task.CompletedTask;
     }
 
     [JSInvokable]
-    public async Task OnCharacterPositionChanged(float x, float y, float z)
+    public Task OnCharacterPositionChanged(float x, float y, float z)
     {
         characterPosition = new Vector3(x, y, z);
         StateHasChanged();
+        return Task.CompletedTask;
     }
 
     private async Task FocusOnServer(string serverId)

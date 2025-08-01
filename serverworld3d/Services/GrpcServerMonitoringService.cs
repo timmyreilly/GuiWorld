@@ -8,7 +8,7 @@ public interface IGrpcServerMonitoringService
 {
     Task<List<ServerState>> GetServerStatesAsync(List<string>? serverIds = null);
     Task<ServerState?> GetServerStateAsync(string serverId);
-    IAsyncEnumerable<ServerState> StreamServerUpdatesAsync(List<string>? serverIds = null, int intervalSeconds = 5);
+    IAsyncEnumerable<ServerState> StreamServerUpdatesAsync(List<string>? serverIds = null, int intervalSeconds = 5, CancellationToken cancellationToken = default);
     Task<bool> UpdateServerConfigurationAsync(string serverId, Dictionary<string, object> config);
 }
 
@@ -71,7 +71,7 @@ public class GrpcServerMonitoringService : IGrpcServerMonitoringService, IDispos
         }
     }
 
-    public async IAsyncEnumerable<ServerState> StreamServerUpdatesAsync(List<string>? serverIds = null, int intervalSeconds = 5)
+    public async IAsyncEnumerable<ServerState> StreamServerUpdatesAsync(List<string>? serverIds = null, int intervalSeconds = 5, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var request = new StreamServerUpdatesRequest
         {
@@ -85,7 +85,7 @@ public class GrpcServerMonitoringService : IGrpcServerMonitoringService, IDispos
 
         using var call = _client.StreamServerUpdates(request);
 
-        while (await call.ResponseStream.MoveNext())
+        while (await call.ResponseStream.MoveNext(cancellationToken))
         {
             yield return ConvertFromGrpcMessage(call.ResponseStream.Current);
         }

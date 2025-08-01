@@ -16,8 +16,8 @@
 <body>
     <Routes />
     
-    <!-- Three.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Three.js Library - using unpkg CDN with fallback -->
+    <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
     
     <!-- SignalR Library -->
     <script src="https://unpkg.com/@@microsoft/signalr@@latest/dist/browser/signalr.min.js"></script>
@@ -26,6 +26,10 @@
     <script src="js/serverworld3d.js"></script>
     <script src="js/signalr-hub.js"></script>
     <script src="js/integration.js"></script>
+    <script src="js/simple3d.js"></script>
+    
+    <!-- Three.js fallback loader (CSP-compliant) -->
+    <script src="js/threejs-loader.js"></script>
     
     <!-- Blazor framework -->
     <script src="_framework/blazor.web.js"></script>

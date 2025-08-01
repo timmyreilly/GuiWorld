@@ -1,0 +1,21 @@
+{
+  "projects": {
+    ".": {
+      "watch": [
+        "**/*.cs",
+        "**/*.razor",
+        "**/*.css",
+        "**/*.js",
+        "**/*.json",
+        "**/*.html"
+      ],
+      "exclude": [
+        "**/bin/**",
+        "**/obj/**",
+        "**/node_modules/**",
+        "**/.git/**",
+        "**/wwwroot/lib/**"
+      ]
+    }
+  }
+}

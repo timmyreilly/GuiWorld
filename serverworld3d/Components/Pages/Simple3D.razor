@@ -1,0 +1,34 @@
+@page "/simple3d"
+
+<h1>🎮 Simple WebGL Test - MINIMAL VERSION</h1>
+
+<p>If you can see this text, Blazor routing is working.</p>
+
+<canvas id="simple3d-canvas" width="800" height="600" style="border: 2px solid red; background-color: blue;"></canvas>
+
+<p>The blue canvas above should be visible.</p>
+
+<script>
+    console.log("Inline script test - this should show in console");
+    
+    // Simple WebGL test without any complex setup
+    setTimeout(function() {
+        console.log("Delayed script running...");
+        var canvas = document.getElementById('simple3d-canvas');
+        if (canvas) {
+            console.log("Canvas found:", canvas);
+            var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (gl) {
+                console.log("WebGL context created!");
+                // Set clear color to green
+                gl.clearColor(0.0, 1.0, 0.0, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                console.log("Canvas should now be green");
+            } else {
+                console.log("WebGL not supported");
+            }
+        } else {
+            console.log("Canvas not found!");
+        }
+    }, 1000);
+</script>

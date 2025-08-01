@@ -1,4 +1,180 @@
 /* Server World 3D Styles */
+
+/* CSS Compatibility Fixes */
+body {
+    /* Add modern text-size-adjust property for better browser support */
+    /* -webkit-text-size-adjust: 100%; */
+    text-size-adjust: 100%;
+}
+
+/* Simple 3D Styles */
+.simple3d-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #0a0a0a;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.simple3d-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: #1a1a2e;
+    border-bottom: 2px solid #16213e;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.simple3d-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 300;
+    background: linear-gradient(45deg, #4CAF50, #2196F3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.simple3d-controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.simple3d-controls .btn {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.simple3d-controls .btn-primary {
+    background: #007acc;
+    color: white;
+}
+
+.simple3d-controls .btn-primary:hover {
+    background: #005a9e;
+}
+
+.simple3d-controls .btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.simple3d-controls .btn-success:hover {
+    background: #1e7e34;
+}
+
+.simple3d-controls .btn-warning {
+    background: #ffc107;
+    color: black;
+}
+
+.simple3d-controls .btn-warning:hover {
+    background: #e0a800;
+}
+
+.webgl-status {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: rgba(33, 150, 243, 0.2);
+    border: 1px solid #2196F3;
+    color: #2196F3;
+}
+
+.simple3d-main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+#simple3d-canvas {
+    flex: 1;
+    background: #000;
+    cursor: grab;
+}
+
+#simple3d-canvas:active {
+    cursor: grabbing;
+}
+
+.simple3d-info {
+    width: 350px;
+    background: #16213e;
+    padding: 1.5rem;
+    overflow-y: auto;
+    border-left: 2px solid #0f3460;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.simple3d-info h3 {
+    margin: 0 0 1rem 0;
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 500;
+    border-bottom: 2px solid #0f3460;
+    padding-bottom: 0.5rem;
+}
+
+.simple3d-info p {
+    margin: 0.5rem 0;
+    color: #cccccc;
+    font-size: 0.9rem;
+}
+
+.simple3d-info strong {
+    color: #ffffff;
+}
+
+.simple3d-info ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    color: #cccccc;
+}
+
+.simple3d-info li {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .simple3d-info {
+        width: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .simple3d-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .simple3d-main {
+        flex-direction: column;
+    }
+    
+    .simple3d-info {
+        width: 100%;
+        height: 40vh;
+        border-left: none;
+        border-top: 2px solid #0f3460;
+    }
+    
+    #simple3d-canvas {
+        height: 60vh;
+    }
+}
+
 .world3d-container {
     height: 100vh;
     display: flex;
@@ -6,6 +182,26 @@
     background: #0a0a0a;
     color: #ffffff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Debug Controls */
+.debug-btn {
+    background: #007acc;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+
+.debug-btn:hover {
+    background: #005a9e;
+}
+
+.debug-btn:active {
+    background: #004578;
 }
 
 .world3d-header {

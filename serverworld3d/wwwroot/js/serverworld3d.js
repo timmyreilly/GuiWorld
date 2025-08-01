@@ -1,7 +1,16 @@
 // Three.js 3D Server World Manager
 class ServerWorld3D {
     constructor(containerId) {
+        console.log("Creating ServerWorld3D for container:", containerId);
         this.container = document.getElementById(containerId);
+        
+        if (!this.container) {
+            console.error("Container not found:", containerId);
+            return;
+        }
+        
+        console.log("Container found:", this.container);
+        
         this.scene = null;
         this.camera = null;
         this.renderer = null;
@@ -25,6 +34,8 @@ class ServerWorld3D {
     }
 
     init() {
+        console.log("Initializing Three.js scene...");
+        
         // Create scene
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x1a1a2e);
@@ -45,9 +56,14 @@ class ServerWorld3D {
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.container.appendChild(this.renderer.domElement);
+        
+        console.log("Renderer created and added to container");
 
         // Create lighting
         this.setupLighting();
+
+        // Add a test cube to verify rendering
+        this.addTestCube();
 
         // Create ground
         this.createGround();
@@ -60,6 +76,17 @@ class ServerWorld3D {
 
         // Handle resize
         window.addEventListener('resize', () => this.onWindowResize());
+    }
+    
+    addTestCube() {
+        const geometry = new THREE.BoxGeometry(2, 2, 2);
+        const material = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(geometry, material);
+        cube.position.set(0, 1, 0);
+        cube.castShadow = true;
+        cube.receiveShadow = true;
+        this.scene.add(cube);
+        console.log("Test cube added to scene");
     }
 
     setupLighting() {

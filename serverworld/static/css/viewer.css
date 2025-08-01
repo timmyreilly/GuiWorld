@@ -1,0 +1,344 @@
+/* 
+ * ServerWorld CSS - Main styling for the 3D viewer and controls
+ * Provides dark theme and responsive design for the WebGL application
+ */
+
+:root {
+    --primary-color: #0099ff;
+    --secondary-color: #0066cc;
+    --background-dark: #1a1a1a;
+    --background-medium: #2d2d2d;
+    --text-light: #ffffff;
+    --text-medium: #cccccc;
+    --border-color: #444444;
+    --success-color: #00ff00;
+    --error-color: #ff0000;
+    --warning-color: #ffaa00;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-dark);
+    color: var(--text-light);
+    overflow-x: hidden;
+}
+
+/* Canvas styling */
+canvas {
+    display: block;
+    cursor: grab;
+}
+
+canvas:active {
+    cursor: grabbing;
+}
+
+/* Control panel styling */
+.controls-panel {
+    background-color: var(--background-medium);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.control-group {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.control-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.control-group h3,
+.control-group h4 {
+    margin: 0 0 1rem 0;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Input styling */
+.control-group input,
+.control-group select,
+.control-group button {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--background-dark);
+    color: var(--text-light);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.control-group input:focus,
+.control-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 153, 255, 0.2);
+}
+
+.control-group button {
+    background-color: var(--secondary-color);
+    color: var(--text-light);
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.control-group button:hover {
+    background-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.control-group button:active {
+    transform: translateY(0);
+}
+
+.control-group button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Vector input styling */
+.vector-input {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.vector-input input {
+    margin-bottom: 0;
+}
+
+/* Status panel styling */
+.status {
+    background-color: var(--background-dark);
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    font-family: 'Courier New', monospace;
+}
+
+.status div {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.status div::before {
+    content: attr(data-label);
+    font-weight: bold;
+    color: var(--text-medium);
+}
+
+/* Connection status */
+#connection-status {
+    font-weight: bold;
+}
+
+#connection-status.connected {
+    color: var(--success-color);
+}
+
+#connection-status.disconnected {
+    color: var(--error-color);
+}
+
+/* Canvas container styling */
+.canvas-container {
+    position: relative;
+    background-color: var(--background-dark);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.canvas-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Loading and error messages */
+.loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.9);
+    color: var(--text-light);
+    padding: 2rem 3rem;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.loading::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-left: 10px;
+    border: 2px solid transparent;
+    border-top: 2px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.error {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    background-color: rgba(255, 0, 0, 0.9);
+    color: var(--text-light);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ff6666;
+    box-shadow: 0 4px 8px rgba(255, 0, 0, 0.3);
+    z-index: 20;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .viewer-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .controls-panel {
+        width: 100%;
+        margin-bottom: 1rem;
+        order: 2;
+    }
+    
+    .canvas-container {
+        order: 1;
+        height: 400px;
+    }
+    
+    .vector-input {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animations */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.control-group {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Scrollbar styling */
+.controls-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.controls-panel::-webkit-scrollbar-track {
+    background-color: var(--background-dark);
+    border-radius: 4px;
+}
+
+.controls-panel::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 4px;
+}
+
+.controls-panel::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-color);
+}
+
+/* Utility classes */
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+
+.p-1 { padding: 0.5rem; }
+.p-2 { padding: 1rem; }
+.p-3 { padding: 1.5rem; }
+
+/* Button variants */
+.btn-primary {
+    background-color: var(--primary-color);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: var(--background-dark);
+}
+
+.btn-warning {
+    background-color: var(--warning-color);
+    color: var(--background-dark);
+}
+
+.btn-danger {
+    background-color: var(--error-color);
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+}
+
+.btn-large {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}

@@ -32,20 +32,26 @@ public class ServerMonitoringService : IServerMonitoringService, IDisposable
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             PropertyNameCaseInsensitive = true
         };
+        
+        _logger.LogInformation("ServerMonitoringService initialized");
     }
 
     public async Task<List<ServerState>> GetAllServerStatesAsync()
     {
+        _logger.LogInformation("GetAllServerStatesAsync called");
         try
         {
             // First try REST API
+            _logger.LogInformation("Attempting to fetch servers via REST API");
             var response = await _httpClient.GetAsync("/api/servers");
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
                 var servers = JsonSerializer.Deserialize<List<ServerState>>(json, _jsonOptions);
+                _logger.LogInformation("Successfully fetched {Count} servers via REST API", servers?.Count ?? 0);
                 return servers ?? new List<ServerState>();
             }
+            _logger.LogWarning("REST API returned status: {StatusCode}", response.StatusCode);
         }
         catch (Exception ex)
         {
@@ -53,7 +59,10 @@ public class ServerMonitoringService : IServerMonitoringService, IDisposable
         }
 
         // Fallback to mock data for demo
-        return GenerateMockServerStates();
+        _logger.LogInformation("Generating mock server data for demo");
+        var mockServers = GenerateMockServerStates();
+        _logger.LogInformation("Generated {Count} mock servers", mockServers.Count);
+        return mockServers;
     }
 
     public async Task<ServerState?> GetServerStateAsync(string serverId)
@@ -95,8 +104,10 @@ public class ServerMonitoringService : IServerMonitoringService, IDisposable
 
     public async Task StartRealtimeUpdatesAsync()
     {
+        _logger.LogInformation("StartRealtimeUpdatesAsync called");
         try
         {
+            _logger.LogInformation("Building SignalR hub connection to /serverHub");
             _hubConnection = new HubConnectionBuilder()
                 .WithUrl("/serverHub")
                 .Build();
@@ -108,6 +119,7 @@ public class ServerMonitoringService : IServerMonitoringService, IDisposable
                     var serverState = JsonSerializer.Deserialize<ServerState>(serverJson, _jsonOptions);
                     if (serverState != null)
                     {
+                        _logger.LogDebug("Received server state update for {ServerId}", serverState.Id);
                         ServerStateUpdated?.Invoke(this, serverState);
                     }
                 }
@@ -117,12 +129,45 @@ public class ServerMonitoringService : IServerMonitoringService, IDisposable
                 }
             });
 
+            _logger.LogInformation("Starting SignalR connection...");
             await _hubConnection.StartAsync();
             _logger.LogInformation("SignalR connection started successfully");
+            
+            // Start mock data updates for demo purposes
+            _logger.LogInformation("Starting mock data updates task");
+            _ = Task.Run(StartMockDataUpdates);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to start SignalR connection");
+            _logger.LogError(ex, "Failed to start SignalR connection, starting mock updates only");
+            // Even if SignalR fails, start mock updates for demo
+            _ = Task.Run(StartMockDataUpdates);
+        }
+    }
+    
+    private async Task StartMockDataUpdates()
+    {
+        _logger.LogInformation("Mock data updates task started");
+        var random = new Random();
+        var updateCount = 0;
+        
+        while (true)
+        {
+            await Task.Delay(3000); // Update every 3 seconds
+            updateCount++;
+            
+            _logger.LogInformation("Mock data update #{UpdateCount} starting", updateCount);
+            var servers = GenerateMockServerStates();
+            foreach (var server in servers)
+            {
+                // Simulate real-time metric changes
+                server.CpuUsage = Math.Max(0, Math.Min(100, server.CpuUsage + random.NextDouble() * 10 - 5));
+                server.MemoryUsage = Math.Max(0, Math.Min(100, server.MemoryUsage + random.NextDouble() * 5 - 2.5));
+                server.LastUpdated = DateTime.UtcNow;
+                
+                ServerStateUpdated?.Invoke(this, server);
+            }
+            _logger.LogInformation("Mock data update #{UpdateCount} completed for {ServerCount} servers", updateCount, servers.Count);
         }
     }
 

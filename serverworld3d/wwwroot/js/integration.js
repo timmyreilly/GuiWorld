@@ -3,10 +3,50 @@ let serverWorld3D = null;
 let serverWorld3DHub = null;
 let dotNetRef = null;
 
+// CSP-safe helper functions for Blazor
+window.checkThreeJS = function() {
+    return typeof THREE !== 'undefined';
+};
+
+window.getThreeVersion = function() {
+    return (typeof THREE !== 'undefined' && THREE.REVISION) ? THREE.REVISION : 'unknown';
+};
+
+// Navigation menu handler for CSP compliance
+function setupNavigationMenu() {
+    const navScrollable = document.getElementById('nav-scrollable');
+    const navToggler = document.querySelector('.navbar-toggler');
+    
+    if (navScrollable && navToggler) {
+        navScrollable.addEventListener('click', function() {
+            navToggler.click();
+        });
+    }
+}
+
+// Initialize navigation when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupNavigationMenu);
+} else {
+    setupNavigationMenu();
+}
+
+// Re-setup navigation after Blazor page changes
+document.addEventListener('enhancedload', setupNavigationMenu);
+
 // Initialize the 3D world
 async function initializeServerWorld3D(canvasId, dotNetReference) {
     try {
+        console.log("Initializing Server World 3D...", canvasId);
         dotNetRef = dotNetReference;
+        
+        // Check if Three.js is loaded
+        if (typeof THREE === 'undefined') {
+            console.error("Three.js is not loaded!");
+            return;
+        }
+        
+        console.log("Three.js loaded, version:", THREE.REVISION);
         
         // Create the 3D world
         serverWorld3D = new ServerWorld3D(canvasId);
@@ -199,9 +239,17 @@ function showInPageAlert(serverId, alertMessage) {
         <div class="alert-content">
             <strong>🚨 Server Alert</strong>
             <div>${serverId}: ${alertMessage}</div>
-            <button onclick="this.parentElement.parentElement.remove()">×</button>
+            <button class="alert-close-btn">×</button>
         </div>
     `;
+    
+    // Add click handler for close button (CSP-compliant)
+    const closeBtn = alertDiv.querySelector('.alert-close-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            alertDiv.remove();
+        });
+    }
     
     // Add styles if not already present
     if (!document.getElementById('alert-styles')) {

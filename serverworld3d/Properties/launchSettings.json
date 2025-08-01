@@ -15,7 +15,8 @@
         "launchBrowser": true,
         "applicationUrl": "http://localhost:5151",
         "environmentVariables": {
-          "ASPNETCORE_ENVIRONMENT": "Development"
+          "ASPNETCORE_ENVIRONMENT": "Development",
+          "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "true"
         }
       },
       "https": {
@@ -24,7 +25,21 @@
         "launchBrowser": true,
         "applicationUrl": "https://localhost:7051;http://localhost:5151",
         "environmentVariables": {
-          "ASPNETCORE_ENVIRONMENT": "Development"
+          "ASPNETCORE_ENVIRONMENT": "Development",
+          "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "true"
+        }
+      },
+      "watch": {
+        "commandName": "Executable",
+        "executablePath": "dotnet",
+        "commandLineArgs": "watch run",
+        "workingDirectory": "$(ProjectDir)",
+        "launchBrowser": true,
+        "applicationUrl": "https://localhost:7051;http://localhost:5151",
+        "environmentVariables": {
+          "ASPNETCORE_ENVIRONMENT": "Development",
+          "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "true",
+          "DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER": "true"
         }
       },
       "IIS Express": {

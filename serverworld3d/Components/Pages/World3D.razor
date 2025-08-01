@@ -22,6 +22,22 @@
         </div>
     </div>
 
+    <!-- Debug Controls Panel -->
+    <div class="debug-controls" style="background: #2a2a2a; padding: 10px; margin: 10px 0; border-radius: 5px;">
+        <h3 style="color: #fff; margin: 0 0 10px 0;">🔧 Debug Controls</h3>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="debug-btn" @onclick="TestConsoleLog">Test Console Log</button>
+            <button class="debug-btn" @onclick="TestThreeJS">Test Three.js</button>
+            <button class="debug-btn" @onclick="TestSignalR">Test SignalR</button>
+            <button class="debug-btn" @onclick="TestServerLoad">Load Servers</button>
+            <button class="debug-btn" @onclick="TestInitialize3D">Initialize 3D</button>
+            <button class="debug-btn" @onclick="ForceStateUpdate">Force UI Update</button>
+        </div>
+        <div style="color: #ccc; margin-top: 10px; font-size: 12px;">
+            Last Action: @debugMessage | Component State: @(isConnected ? "Connected" : "Disconnected")
+        </div>
+    </div>
+
     <div class="world3d-main">
         <div id="world3d-canvas" class="world3d-canvas"></div>
         
@@ -183,6 +199,136 @@
     private int serverCount = 0;
     private bool isConnected = false;
     private DotNetObjectReference<World3D>? dotNetObjectRef;
+    private string debugMessage = "Ready";
+
+    protected override void OnInitialized()
+    {
+        Logger.LogInformation("=== World3D component OnInitialized called ===");
+        try
+        {
+            Logger.LogInformation("World3D initialization starting...");
+            debugMessage = "OnInitialized called";
+            base.OnInitialized();
+            Logger.LogInformation("World3D OnInitialized completed successfully");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error in World3D OnInitialized");
+            debugMessage = $"OnInitialized failed: {ex.Message}";
+        }
+    }
+
+    // Debug Methods
+    private async Task TestConsoleLog()
+    {
+        debugMessage = "Testing console log...";
+        StateHasChanged();
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("console.log", "🧪 Test console log from Blazor!", DateTime.Now);
+            await JSRuntime.InvokeVoidAsync("console.warn", "🧪 Test warning from Blazor!");
+            await JSRuntime.InvokeVoidAsync("console.error", "🧪 Test error from Blazor!");
+            debugMessage = "Console test completed - check browser console";
+        }
+        catch (Exception ex)
+        {
+            debugMessage = $"Console test failed: {ex.Message}";
+            Logger.LogError(ex, "Console test failed");
+        }
+        StateHasChanged();
+    }
+
+    private async Task TestThreeJS()
+    {
+        debugMessage = "Testing Three.js...";
+        StateHasChanged();
+        try
+        {
+            // Check if THREE is available without using eval()
+            var hasThree = await JSRuntime.InvokeAsync<bool>("checkThreeJS");
+            if (hasThree)
+            {
+                var threeVersion = await JSRuntime.InvokeAsync<string>("getThreeVersion");
+                debugMessage = $"Three.js loaded! Version: {threeVersion}";
+            }
+            else
+            {
+                debugMessage = "Three.js NOT loaded!";
+            }
+        }
+        catch (Exception ex)
+        {
+            debugMessage = $"Three.js test failed: {ex.Message}";
+            Logger.LogError(ex, "Three.js test failed");
+        }
+        StateHasChanged();
+    }
+
+    private async Task TestSignalR()
+    {
+        debugMessage = "Testing SignalR...";
+        StateHasChanged();
+        try
+        {
+            await ServerMonitoringService.StartRealtimeUpdatesAsync();
+            debugMessage = "SignalR connection attempt completed";
+        }
+        catch (Exception ex)
+        {
+            debugMessage = $"SignalR test failed: {ex.Message}";
+            Logger.LogError(ex, "SignalR test failed");
+        }
+        StateHasChanged();
+    }
+
+    private async Task TestServerLoad()
+    {
+        debugMessage = "Loading servers...";
+        StateHasChanged();
+        try
+        {
+            await LoadServerStates();
+            debugMessage = $"Loaded {servers.Count} servers";
+        }
+        catch (Exception ex)
+        {
+            debugMessage = $"Server load failed: {ex.Message}";
+            Logger.LogError(ex, "Server load failed");
+        }
+        StateHasChanged();
+    }
+
+    private async Task TestInitialize3D()
+    {
+        debugMessage = "Initializing 3D world...";
+        StateHasChanged();
+        try
+        {
+            if (dotNetObjectRef == null)
+            {
+                dotNetObjectRef = DotNetObjectReference.Create(this);
+            }
+            await JSRuntime.InvokeVoidAsync("initializeServerWorld3D", "world3d-canvas", dotNetObjectRef);
+            debugMessage = "3D initialization completed";
+        }
+        catch (Exception ex)
+        {
+            debugMessage = $"3D initialization failed: {ex.Message}";
+            Logger.LogError(ex, "3D initialization failed");
+        }
+        StateHasChanged();
+    }
+
+    private async Task ForceStateUpdate()
+    {
+        debugMessage = "Forcing state update...";
+        isConnected = !isConnected;
+        serverCount = servers.Count;
+        StateHasChanged();
+        await Task.Delay(100);
+        debugMessage = $"State updated - Connected: {isConnected}, Servers: {serverCount}";
+        StateHasChanged();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -190,24 +336,31 @@
         {
             try
             {
+                Logger.LogInformation("Starting World3D initialization...");
                 dotNetObjectRef = DotNetObjectReference.Create(this);
                 
                 // Initialize the 3D world
+                Logger.LogInformation("Initializing 3D world canvas...");
                 await JSRuntime.InvokeVoidAsync("initializeServerWorld3D", "world3d-canvas", dotNetObjectRef);
                 
                 // Load initial server states
+                Logger.LogInformation("Loading server states...");
                 await LoadServerStates();
                 
                 // Start real-time updates
+                Logger.LogInformation("Starting real-time updates...");
                 await ServerMonitoringService.StartRealtimeUpdatesAsync();
                 ServerMonitoringService.ServerStateUpdated += OnServerStateUpdated;
                 
                 isConnected = true;
+                Logger.LogInformation("World3D initialization completed successfully");
                 StateHasChanged();
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Failed to initialize 3D world");
+                isConnected = false;
+                StateHasChanged();
             }
         }
     }

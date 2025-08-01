@@ -6,7 +6,7 @@
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+<div class="nav-scrollable" id="nav-scrollable">
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
@@ -17,6 +17,12 @@
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="world">
                 <span class="bi bi-globe-nav-menu" aria-hidden="true"></span> 🌐 Server World 3D
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="simple3d">
+                <span class="bi bi-box-nav-menu" aria-hidden="true"></span> 🎮 Simple WebGL Test
             </NavLink>
         </div>
 

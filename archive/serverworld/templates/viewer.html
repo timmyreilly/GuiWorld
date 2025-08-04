@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="viewer-container">
+    <div class="controls-panel">
+        <h3>3D Controls</h3>
+        <div class="control-group">
+            <label>Scene:</label>
+            <select id="scene-selector">
+                <option value="demo">Demo Scene</option>
+            </select>
+            <button id="load-scene">Load Scene</button>
+        </div>
+        
+        <div class="control-group">
+            <label>Camera Position:</label>
+            <div class="vector-input">
+                <input type="number" id="cam-x" value="0" step="0.1">
+                <input type="number" id="cam-y" value="0" step="0.1">
+                <input type="number" id="cam-z" value="10" step="0.1">
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <button id="reset-camera">Reset Camera</button>
+            <button id="toggle-wireframe">Toggle Wireframe</button>
+        </div>
+        
+        <div class="control-group">
+            <h4>Add Objects:</h4>
+            <button id="add-cube">Add Cube</button>
+            <button id="add-sphere">Add Sphere</button>
+        </div>
+        
+        <div class="status">
+            <h4>Status:</h4>
+            <div id="fps-counter">FPS: --</div>
+            <div id="object-count">Objects: 0</div>
+            <div id="connection-status">Disconnected</div>
+        </div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="webgl-canvas" width="800" height="600"></canvas>
+        <div class="canvas-overlay">
+            <div id="loading" class="loading">Loading WebGL...</div>
+            <div id="error-message" class="error hidden"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+.viewer-container {
+    display: flex;
+    height: calc(100vh - 120px);
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.controls-panel {
+    width: 300px;
+    background-color: #2d2d2d;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #444;
+    overflow-y: auto;
+}
+
+.control-group {
+    margin-bottom: 1.5rem;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #0099ff;
+    font-weight: bold;
+}
+
+.control-group input, .control-group select, .control-group button {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #1a1a1a;
+    color: white;
+}
+
+.control-group button {
+    background-color: #0066cc;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.control-group button:hover {
+    background-color: #0099ff;
+}
+
+.vector-input {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.canvas-container {
+    flex: 1;
+    position: relative;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    border: 1px solid #444;
+    overflow: hidden;
+}
+
+#webgl-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.canvas-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1.2rem;
+}
+
+.error {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    background-color: rgba(255, 0, 0, 0.9);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.hidden {
+    display: none;
+}
+
+.status {
+    background-color: #1a1a1a;
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid #555;
+}
+
+.status div {
+    margin: 0.5rem 0;
+    font-family: monospace;
+}
+
+#connection-status.connected {
+    color: #00ff00;
+}
+
+#connection-status.disconnected {
+    color: #ff0000;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/webgl-renderer.js"></script>
+<script src="/static/js/scene-manager.js"></script>
+<script src="/static/js/camera-controls.js"></script>
+<script src="/static/js/websocket-client.js"></script>
+<script>
+// Initialize the 3D viewer
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('webgl-canvas');
+    const loading = document.getElementById('loading');
+    const errorMessage = document.getElementById('error-message');
+    
+    try {
+        // Initialize WebGL renderer
+        const renderer = new WebGLRenderer(canvas);
+        const sceneManager = new SceneManager(renderer);
+        const cameraControls = new CameraControls(canvas, sceneManager.camera);
+        const wsClient = new WebSocketClient();
+        
+        // Connect to WebSocket
+        wsClient.connect('/ws/realtime/scene/demo');
+        
+        // Setup controls
+        setupControls(sceneManager, cameraControls, wsClient);
+        
+        // Start render loop
+        function animate() {
+            sceneManager.render();
+            updateFPS();
+            requestAnimationFrame(animate);
+        }
+        
+        // Hide loading screen
+        loading.style.display = 'none';
+        
+        // Start animation
+        animate();
+        
+    } catch (error) {
+        console.error('Failed to initialize WebGL:', error);
+        loading.style.display = 'none';
+        errorMessage.textContent = 'Failed to initialize WebGL: ' + error.message;
+        errorMessage.classList.remove('hidden');
+    }
+});
+
+function setupControls(sceneManager, cameraControls, wsClient) {
+    // Scene controls
+    document.getElementById('load-scene').addEventListener('click', function() {
+        const sceneId = document.getElementById('scene-selector').value;
+        loadScene(sceneId, sceneManager);
+    });
+    
+    // Camera controls
+    document.getElementById('reset-camera').addEventListener('click', function() {
+        cameraControls.reset();
+    });
+    
+    // Object creation
+    document.getElementById('add-cube').addEventListener('click', function() {
+        addCube(sceneManager, wsClient);
+    });
+    
+    document.getElementById('add-sphere').addEventListener('click', function() {
+        addSphere(sceneManager, wsClient);
+    });
+    
+    // Update object count
+    updateObjectCount(sceneManager.objects.length);
+}
+
+async function loadScene(sceneId, sceneManager) {
+    try {
+        const response = await fetch(`/api/scenes/${sceneId}/webgl`);
+        const sceneData = await response.json();
+        sceneManager.loadScene(sceneData);
+        updateObjectCount(sceneManager.objects.length);
+    } catch (error) {
+        console.error('Failed to load scene:', error);
+    }
+}
+
+async function addCube(sceneManager, wsClient) {
+    try {
+        const response = await fetch('/api/objects/cube', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                size: 1.0,
+                position: { x: Math.random() * 10 - 5, y: 0, z: Math.random() * 10 - 5 },
+                color: [Math.random(), Math.random(), Math.random(), 1.0]
+            })
+        });
+        const object = await response.json();
+        sceneManager.addObject(object);
+        updateObjectCount(sceneManager.objects.length);
+        
+        // Send update via WebSocket
+        wsClient.send({
+            type: 'scene_update',
+            update_type: 'object_added',
+            data: object
+        });
+    } catch (error) {
+        console.error('Failed to add cube:', error);
+    }
+}
+
+async function addSphere(sceneManager, wsClient) {
+    try {
+        const response = await fetch('/api/objects/sphere', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                radius: 1.0,
+                position: { x: Math.random() * 10 - 5, y: 0, z: Math.random() * 10 - 5 },
+                color: [Math.random(), Math.random(), Math.random(), 1.0]
+            })
+        });
+        const object = await response.json();
+        sceneManager.addObject(object);
+        updateObjectCount(sceneManager.objects.length);
+        
+        // Send update via WebSocket
+        wsClient.send({
+            type: 'scene_update',
+            update_type: 'object_added',
+            data: object
+        });
+    } catch (error) {
+        console.error('Failed to add sphere:', error);
+    }
+}
+
+function updateObjectCount(count) {
+    document.getElementById('object-count').textContent = `Objects: ${count}`;
+}
+
+let lastTime = 0;
+let frameCount = 0;
+function updateFPS() {
+    frameCount++;
+    const now = performance.now();
+    if (now - lastTime >= 1000) {
+        const fps = Math.round((frameCount * 1000) / (now - lastTime));
+        document.getElementById('fps-counter').textContent = `FPS: ${fps}`;
+        frameCount = 0;
+        lastTime = now;
+    }
+}
+</script>
+{% endblock %}

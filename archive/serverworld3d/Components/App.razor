@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="css/serverworld3d.css" />
+    <link rel="stylesheet" href="ServerWorld3D.styles.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes />
+    
+    <!-- Three.js Library - using unpkg CDN with fallback -->
+    <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+    
+    <!-- SignalR Library -->
+    <script src="https://unpkg.com/@@microsoft/signalr@@latest/dist/browser/signalr.min.js"></script>
+    
+    <!-- Our custom JavaScript files -->
+    <script src="js/serverworld3d.js"></script>
+    <script src="js/signalr-hub.js"></script>
+    <script src="js/integration.js"></script>
+    <script src="js/simple3d.js"></script>
+    
+    <!-- Three.js fallback loader (CSP-compliant) -->
+    <script src="js/threejs-loader.js"></script>
+    
+    <!-- Blazor framework -->
+    <script src="_framework/blazor.web.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title | default("ServerWorld") }}</title>
+    <link rel="stylesheet" href="/static/css/viewer.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .header {
+            background-color: #2d2d2d;
+            padding: 1rem;
+            border-bottom: 2px solid #0066cc;
+        }
+        .nav {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .nav a {
+            color: #0099ff;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .nav a:hover {
+            background-color: #0066cc;
+            color: white;
+        }
+        .nav a.active {
+            background-color: #0099ff;
+            color: white;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .hero {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #0099ff;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: #cccccc;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .feature {
+            background-color: #2d2d2d;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        .feature h3 {
+            color: #0099ff;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>ServerWorld</h1>
+        <p>Python WebGL 3D Visualization Platform</p>
+        <nav class="nav">
+            <a href="/" class="{{ 'active' if page == 'home' else '' }}">Home</a>
+            <a href="/viewer" class="{{ 'active' if page == 'viewer' else '' }}">3D Viewer</a>
+            <a href="/demos" class="{{ 'active' if page == 'demos' else '' }}">Demos</a>
+            <a href="/docs" target="_blank">API Docs</a>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        <div class="container">
+            <div class="hero">
+                <h1>Welcome to ServerWorld</h1>
+                <p>A Python-powered WebGL demonstration platform for real-time 3D visualization</p>
+            </div>
+
+            <div class="features">
+                <div class="feature">
+                    <h3>🚀 FastAPI Backend</h3>
+                    <p>High-performance async web framework with automatic API documentation and real-time capabilities.</p>
+                </div>
+                <div class="feature">
+                    <h3>🎨 WebGL Rendering</h3>
+                    <p>Raw WebGL implementation for maximum performance and flexibility in 3D visualization.</p>
+                </div>
+                <div class="feature">
+                    <h3>⚡ Real-time Updates</h3>
+                    <p>WebSocket communication for live data streaming and interactive scene manipulation.</p>
+                </div>
+                <div class="feature">
+                    <h3>🔧 Python Generation</h3>
+                    <p>Procedural mesh generation and scene composition using NumPy and modern Python.</p>
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+    </main>
+
+    <footer style="text-align: center; padding: 2rem; color: #666; margin-top: 3rem;">
+        <p>&copy; 2025 ServerWorld - Python WebGL Demo Platform</p>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

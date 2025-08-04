@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Babylon.js 3D Scene - Comparison with Raw WebGL</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: #2a2a2a;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            max-width: 800px;
+            text-align: center;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        #renderCanvas {
+            width: 800px;
+            height: 600px;
+            border: 2px solid #4CAF50;
+            display: block;
+            margin: 20px auto;
+        }
+        
+        .controls {
+            margin: 20px;
+            text-align: center;
+        }
+        
+        .feature-list {
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            max-width: 800px;
+        }
+        
+        .feature-list h3 {
+            color: #4CAF50;
+            margin-top: 0;
+        }
+        
+        .feature-list ul {
+            text-align: left;
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 800px;
+            margin: 20px 0;
+        }
+        
+        .comparison-item {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .comparison-item h4 {
+            color: #4CAF50;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Babylon.js 3D Scene Recreation</h1>
+        
+        <div class="description">
+            This scene recreates the exact same 3D environment from the raw WebGL implementation, 
+            but using Babylon.js for simplified development and enhanced features.
+        </div>
+        
+        <canvas id="renderCanvas"></canvas>
+        
+        <div class="controls">
+            <p><strong>Controls:</strong> Left click + drag to orbit | Mouse wheel to zoom | Right click + drag to pan</p>
+        </div>
+        
+        <div class="feature-list">
+            <h3>Babylon.js Advantages Demonstrated:</h3>
+            <ul>
+                <li><strong>Automatic Camera Controls:</strong> Built-in orbit camera with mouse/touch interaction</li>
+                <li><strong>Simplified Geometry:</strong> Built-in primitive shapes (BoxGeometry, PlaneGeometry)</li>
+                <li><strong>Material System:</strong> Easy color assignment and lighting</li>
+                <li><strong>Lighting Engine:</strong> Automatic lighting calculations and shadows</li>
+                <li><strong>Animation System:</strong> Built-in animation framework</li>
+                <li><strong>Scene Management:</strong> Automatic render loop and resource management</li>
+                <li><strong>Inspector Tools:</strong> Built-in debugging and scene inspection</li>
+            </ul>
+        </div>
+        
+        <div class="comparison">
+            <div class="comparison-item">
+                <h4>Raw WebGL Implementation</h4>
+                <ul>
+                    <li>~200 lines of complex code</li>
+                    <li>Manual vertex buffer management</li>
+                    <li>Custom shader writing</li>
+                    <li>Manual matrix mathematics</li>
+                    <li>No lighting system</li>
+                    <li>Fixed camera orbit</li>
+                </ul>
+            </div>
+            
+            <div class="comparison-item">
+                <h4>Babylon.js Implementation</h4>
+                <ul>
+                    <li>~50 lines of intuitive code</li>
+                    <li>Automatic resource management</li>
+                    <li>Built-in material system</li>
+                    <li>Automatic transformations</li>
+                    <li>Realistic lighting & shadows</li>
+                    <li>Interactive camera controls</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script src="dist/babylon-scene.js"></script>
+</body>
+</html>

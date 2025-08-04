@@ -6,8 +6,11 @@ class BabylonScene {
     private camera!: ArcRotateCamera; // Definite assignment assertion
     private cubes: Mesh[] = [];
     private shadowGenerator!: ShadowGenerator;
+    private canvas: HTMLCanvasElement;
 
     constructor(canvas: HTMLCanvasElement) {
+        this.canvas = canvas;
+        
         // Create Babylon.js engine and scene
         this.engine = new Engine(canvas, true);
         this.scene = new Scene(this.engine);
@@ -15,7 +18,7 @@ class BabylonScene {
         this.createCamera();
         this.createLighting();
         this.createGeometry();
-        this.setupAnimations();
+        this.setupKeyboardControls();
         this.startRenderLoop();
         
         // Handle window resize
@@ -124,32 +127,76 @@ class BabylonScene {
         });
     }
 
-    private setupAnimations(): void {
-        // Create automatic orbital animation for the camera (similar to WebGL version)
-        const cameraAnimation = Animation.CreateAndStartAnimation(
-            "cameraOrbit",
-            this.camera,
-            "alpha",
-            30, // 30 fps
-            300, // 300 frames = 10 seconds for full rotation
-            0,
-            2 * Math.PI,
-            Animation.ANIMATIONLOOPMODE_CYCLE
-        );
-
-        // Optional: Add subtle rotation to the smaller cubes
-        this.cubes.slice(1).forEach((cube, index) => {
-            Animation.CreateAndStartAnimation(
-                `cubeRotation${index}`,
-                cube,
-                "rotation.y",
-                30,
-                180, // 6 seconds per rotation
-                cube.rotation.y,
-                cube.rotation.y + 2 * Math.PI,
-                Animation.ANIMATIONLOOPMODE_CYCLE
-            );
+    private setupKeyboardControls(): void {
+        // Make canvas focusable
+        this.canvas.tabIndex = 0;
+        
+        // Camera movement speed
+        const rotationSpeed = 0.05; // radians per keypress
+        const zoomSpeed = 0.5; // units per keypress
+        
+        // Add focus styling to show when canvas is active
+        this.canvas.style.outline = 'none';
+        this.canvas.addEventListener('focus', () => {
+            this.canvas.style.boxShadow = '0 0 0 3px rgba(76, 175, 80, 0.5)';
         });
+        
+        this.canvas.addEventListener('blur', () => {
+            this.canvas.style.boxShadow = '0 4px 16px rgba(76, 175, 80, 0.3)';
+        });
+        
+        // Keyboard event handler
+        this.canvas.addEventListener('keydown', (event) => {
+            switch(event.code) {
+                case 'ArrowLeft':
+                    // Rotate left (decrease alpha)
+                    this.camera.alpha -= rotationSpeed;
+                    event.preventDefault();
+                    break;
+                    
+                case 'ArrowRight':
+                    // Rotate right (increase alpha)
+                    this.camera.alpha += rotationSpeed;
+                    event.preventDefault();
+                    break;
+                    
+                case 'ArrowUp':
+                    // Zoom in (decrease radius)
+                    const lowerLimit = this.camera.lowerRadiusLimit ?? 1;
+                    this.camera.radius = Math.max(lowerLimit, this.camera.radius - zoomSpeed);
+                    event.preventDefault();
+                    break;
+                    
+                case 'ArrowDown':
+                    // Zoom out (increase radius)
+                    const upperLimit = this.camera.upperRadiusLimit ?? 20;
+                    this.camera.radius = Math.min(upperLimit, this.camera.radius + zoomSpeed);
+                    event.preventDefault();
+                    break;
+                    
+                case 'KeyW':
+                    // Tilt up (decrease beta)
+                    const lowerBetaLimit = this.camera.lowerBetaLimit ?? 0.1;
+                    this.camera.beta = Math.max(lowerBetaLimit, this.camera.beta - rotationSpeed);
+                    event.preventDefault();
+                    break;
+                    
+                case 'KeyS':
+                    // Tilt down (increase beta)
+                    const upperBetaLimit = this.camera.upperBetaLimit ?? Math.PI / 2;
+                    this.camera.beta = Math.min(upperBetaLimit, this.camera.beta + rotationSpeed);
+                    event.preventDefault();
+                    break;
+            }
+        });
+        
+        // Click to focus the canvas
+        this.canvas.addEventListener('click', () => {
+            this.canvas.focus();
+        });
+        
+        // Initial focus
+        this.canvas.focus();
     }
 
     private startRenderLoop(): void {

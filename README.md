@@ -216,3 +216,18 @@ This project includes Microsoft Edge DevTools integration for advanced debugging
 ## 🤝 Contributing
 
 [Add contributing guidelines here]
+
+WebGL 
+
+WebGPU
+
+3.js - browser support for web_gl
+
+3.js three.js - babylon has more advanced tools, editor in the 3js more extensive avatar for rendering for the structure of the xaml to add 
+
+no typescript re
+
+Babylon.js with Typescript 
+
+
+Output image in clip space... x y z 

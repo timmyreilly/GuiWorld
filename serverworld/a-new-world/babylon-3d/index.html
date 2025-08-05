@@ -33,8 +33,8 @@
         }
         
         #renderCanvas {
-            width: 800px;
-            height: 600px;
+            width: 1000px;
+            height: 750px;
             border: 2px solid #4CAF50;
             display: block;
             margin: 20px auto;
@@ -43,6 +43,81 @@
         .controls {
             margin: 20px;
             text-align: center;
+        }
+        
+        .instructions {
+            background: #334455;
+            border: 2px solid #4CAF50;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px auto;
+            max-width: 800px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .instructions h3 {
+            color: #4CAF50;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .control-section {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .control-section h4 {
+            color: #81C784;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .control-section ul {
+            margin: 0;
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+        
+        .key-combo {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        
+        .step-number {
+            background: #4CAF50;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .control-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .instructions {
+                margin: 15px;
+                padding: 20px;
+            }
         }
         
         .feature-list {
@@ -91,17 +166,58 @@
             but using Babylon.js for simplified development and enhanced features.
         </div>
         
+        <div class="instructions">
+            <h3>🎮 How to Navigate the 3D Scene</h3>
+            
+            <p><span class="step-number">1</span><strong>Click on the canvas</strong> to focus it (you'll see a green glow around the border)</p>
+            <p><span class="step-number">2</span><strong>Use mouse and keyboard controls</strong> to explore the 3D environment</p>
+            
+            <div class="control-grid">
+                <div class="control-section">
+                    <h4>🖱️ Mouse Controls</h4>
+                    <ul>
+                        <li><strong>Left click + drag:</strong> Orbit around scene</li>
+                        <li><strong>Mouse wheel:</strong> Zoom in/out</li>
+                        <li><strong>Right click + drag:</strong> Pan camera</li>
+                        <li><strong>Click red cube:</strong> Play boop sound! 🔊</li>
+                        <li><strong>Click yellow cube:</strong> Update HTML outside canvas! 📝</li>
+                        <li><strong>Click blue cube:</strong> Send to Azure queue service! ☁️</li>
+                        <li><strong>Click purple cube:</strong> Launch 2D interactive scene! 🎨</li>
+                    </ul>
+                </div>
+                
+                <div class="control-section">
+                    <h4>⌨️ Keyboard Controls</h4>
+                    <ul>
+                        <li><span class="key-combo">←</span> <span class="key-combo">→</span> Rotate left/right</li>
+                        <li><span class="key-combo">↑</span> <span class="key-combo">↓</span> Zoom in/out</li>
+                        <li><span class="key-combo">W</span> <span class="key-combo">S</span> Tilt up/down</li>
+                    </ul>
+                </div>
+                
+                <div class="control-section">
+                    <h4>🎨 Scene Features</h4>
+                    <ul>
+                        <li><strong>Realistic shadows:</strong> Dynamic shadow casting</li>
+                        <li><strong>Multiple materials:</strong> Colorful cube variations</li>
+                        <li><strong>3D lighting:</strong> Ambient + directional light</li>
+                        <li><strong>Interactive audio:</strong> Click the red cube!</li>
+                        <li><strong>HTML integration:</strong> Click the yellow cube!</li>
+                        <li><strong>API integration:</strong> Click the blue cube!</li>
+                        <li><strong>2D scene transition:</strong> Click the purple cube!</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <p style="text-align: center; margin-top: 15px; font-style: italic; color: #ccc;">
+                💡 Tip: Use a combination of mouse and keyboard for the smoothest navigation experience!
+            </p>
+        </div>
+        
         <canvas id="renderCanvas"></canvas>
         
         <div class="controls">
-            <p><strong>Camera Controls:</strong></p>
-            <ul style="text-align: left; display: inline-block;">
-                <li><strong>Mouse:</strong> Left click + drag to orbit | Mouse wheel to zoom | Right click + drag to pan</li>
-                <li><strong>Keyboard:</strong> Click canvas to focus, then use:</li>
-                <li>  ← → Arrow keys: Rotate left/right around scene</li>
-                <li>  ↑ ↓ Arrow keys: Zoom in/out</li>
-                <li>  W S keys: Tilt camera up/down</li>
-            </ul>
+            <p style="color: #81C784;"><strong>✨ 3D Scene Ready!</strong> Use the mouse and keyboard controls above to explore the environment.</p>
         </div>
         
         <div class="feature-list">

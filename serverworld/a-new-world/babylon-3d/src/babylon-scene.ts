@@ -8,11 +8,13 @@ class BabylonScene {
     private shadowGenerator!: ShadowGenerator;
     private canvas: HTMLCanvasElement;
     private centerCube!: Mesh; // Reference to the red center cube
+    private greenCube!: Mesh; // Reference to the green cube
     private yellowCube!: Mesh; // Reference to the yellow cube
     private blueCube!: Mesh; // Reference to the blue cube
     private purpleCube!: Mesh; // Reference to the purple cube
     private audioContext: AudioContext | null = null;
     private clickHandlersSetup: boolean = false; // Guard to prevent duplicate handlers
+    private currentSceneType: 'main' | 'menu' = 'main'; // Track current scene type
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
@@ -132,7 +134,10 @@ class BabylonScene {
             material.diffuseColor = colors[index];
             cube.material = material;
             
-            // Store reference to yellow cube (index 2), blue cube (index 1), and purple cube (index 3)
+            // Store reference to green cube (index 0), yellow cube (index 2), blue cube (index 1), and purple cube (index 3)
+            if (index === 0) {
+                this.greenCube = cube;
+            }
             if (index === 2) {
                 this.yellowCube = cube;
             }
@@ -147,6 +152,220 @@ class BabylonScene {
             this.shadowGenerator.addShadowCaster(cube);
             this.cubes.push(cube);
         });
+    }
+
+    private createMenuScene(): void {
+        console.log('Creating menu scene...');
+        
+        // Clear the current scene
+        this.scene.dispose();
+        
+        // Create a new scene
+        this.scene = new Scene(this.engine);
+        this.currentSceneType = 'menu';
+        
+        // Create simpler lighting for the menu
+        this.createMenuLighting();
+        
+        // Create menu geometry
+        this.createMenuGeometry();
+        
+        // Create a simpler camera setup
+        this.createMenuCamera();
+        
+        // Re-setup click handling for the new scene
+        this.clickHandlersSetup = false;
+        this.setupClickHandling();
+        
+        // Show transition feedback
+        this.showSceneTransitionFeedback('🎮 Entered Menu Scene', 'success');
+    }
+
+    private createMenuLighting(): void {
+        // Simple ambient light only - no shadows for cleaner look
+        const ambientLight = new HemisphericLight("menuAmbient", new Vector3(0, 1, 0), this.scene);
+        ambientLight.intensity = 0.8; // Brighter ambient for menu
+        
+        // Soft directional light for subtle depth
+        const dirLight = new DirectionalLight("menuDirLight", new Vector3(-0.5, -1, -0.5), this.scene);
+        dirLight.position = new Vector3(5, 10, 5);
+        dirLight.intensity = 0.3; // Much softer than main scene
+        
+        // No shadow generator for simpler, cleaner look
+    }
+
+    private createMenuCamera(): void {
+        // Create a camera positioned to view the menu nicely
+        this.camera = new ArcRotateCamera(
+            "menuCamera", 
+            0,          // alpha (horizontal rotation)
+            Math.PI/4,  // beta (vertical rotation) - slightly higher view
+            8,          // radius (closer for menu view)
+            Vector3.Zero(), // target position
+            this.scene
+        );
+        
+        // Enable camera controls but with tighter limits
+        this.camera.attachControl();
+        
+        // Tighter camera limits for menu
+        this.camera.lowerRadiusLimit = 5;
+        this.camera.upperRadiusLimit = 12;
+        this.camera.lowerBetaLimit = 0.1;
+        this.camera.upperBetaLimit = Math.PI / 2.5; // Prevent looking too far down
+    }
+
+    private createMenuGeometry(): void {
+        // Create a simple platform
+        const platform = MeshBuilder.CreateGround("menuPlatform", {
+            width: 8,
+            height: 8
+        }, this.scene);
+        
+        const platformMaterial = new StandardMaterial("platformMat", this.scene);
+        platformMaterial.diffuseColor = new Color3(0.1, 0.15, 0.3); // Dark blue platform
+        platform.material = platformMaterial;
+
+        // Create menu title
+        const titleBlock = MeshBuilder.CreateBox("titleBlock", {
+            width: 4,
+            height: 0.5,
+            depth: 1
+        }, this.scene);
+        
+        titleBlock.position = new Vector3(0, 0.25, -2);
+        
+        const titleMaterial = new StandardMaterial("titleMat", this.scene);
+        titleMaterial.diffuseColor = new Color3(0.2, 0.8, 1); // Light blue
+        titleMaterial.emissiveColor = new Color3(0.05, 0.2, 0.25); // Slight glow
+        titleBlock.material = titleMaterial;
+
+        // Create menu options as floating cubes
+        const menuOptions = [
+            { name: "option1", pos: new Vector3(-2, 1, 0), color: new Color3(0.3, 0.9, 0.3), label: "Settings" },
+            { name: "option2", pos: new Vector3(0, 1, 0), color: new Color3(0.9, 0.6, 0.3), label: "Projects" },
+            { name: "option3", pos: new Vector3(2, 1, 0), color: new Color3(0.9, 0.3, 0.6), label: "About" }
+        ];
+
+        menuOptions.forEach(option => {
+            const cube = MeshBuilder.CreateBox(option.name, {
+                size: 0.8
+            }, this.scene);
+            
+            cube.position = option.pos;
+            
+            const material = new StandardMaterial(`${option.name}Mat`, this.scene);
+            material.diffuseColor = option.color;
+            material.emissiveColor = option.color.scale(0.1); // Subtle glow
+            cube.material = material;
+            
+            // Add floating animation
+            const animationKeys = [];
+            animationKeys.push({
+                frame: 0,
+                value: option.pos.y
+            });
+            animationKeys.push({
+                frame: 60,
+                value: option.pos.y + 0.2
+            });
+            animationKeys.push({
+                frame: 120,
+                value: option.pos.y
+            });
+
+            const animationBox = Animation.CreateAndStartAnimation(
+                `${option.name}Float`,
+                cube,
+                "position.y",
+                30,
+                120,
+                option.pos.y,
+                option.pos.y + 0.2,
+                Animation.ANIMATIONLOOPMODE_CYCLE
+            );
+            
+            this.cubes.push(cube);
+        });
+
+        // Add "Back to Main" button
+        const backButton = MeshBuilder.CreateSphere("backButton", {
+            diameter: 1
+        }, this.scene);
+        
+        backButton.position = new Vector3(0, 0.5, 2.5);
+        
+        const backMaterial = new StandardMaterial("backMat", this.scene);
+        backMaterial.diffuseColor = new Color3(0.8, 0.2, 0.2); // Red for back
+        backMaterial.emissiveColor = new Color3(0.2, 0.05, 0.05);
+        backButton.material = backMaterial;
+        
+        // Store reference for click detection
+        (this as any).backButton = backButton;
+        this.cubes.push(backButton);
+    }
+
+    private returnToMainScene(): void {
+        console.log('Returning to main scene...');
+        
+        // Clear the menu scene
+        this.scene.dispose();
+        
+        // Create a new main scene
+        this.scene = new Scene(this.engine);
+        this.currentSceneType = 'main';
+        
+        // Recreate main scene components
+        this.createCamera();
+        this.createLighting();
+        this.createGeometry();
+        
+        // Re-setup click handling for the main scene
+        this.clickHandlersSetup = false;
+        this.setupClickHandling();
+        
+        // Show transition feedback
+        this.showSceneTransitionFeedback('🌍 Returned to Main Scene', 'success');
+    }
+
+    private showSceneTransitionFeedback(message: string, type: 'success' | 'info'): void {
+        // Create or update a feedback div for scene transitions
+        let feedbackDiv = document.getElementById('scene-transition-feedback');
+        
+        if (!feedbackDiv) {
+            feedbackDiv = document.createElement('div');
+            feedbackDiv.id = 'scene-transition-feedback';
+            feedbackDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0);
+                background: linear-gradient(135deg, #4CAF50, #45a049);
+                color: white;
+                padding: 20px 30px;
+                border-radius: 15px;
+                font-family: Arial, sans-serif;
+                font-weight: bold;
+                font-size: 18px;
+                z-index: 1500;
+                transition: transform 0.4s ease-in-out;
+                box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+                text-align: center;
+            `;
+            document.body.appendChild(feedbackDiv);
+        }
+
+        feedbackDiv.textContent = message;
+
+        // Animate in
+        setTimeout(() => {
+            feedbackDiv.style.transform = 'translate(-50%, -50%) scale(1)';
+        }, 10);
+
+        // Hide after 2.5 seconds
+        setTimeout(() => {
+            feedbackDiv.style.transform = 'translate(-50%, -50%) scale(0)';
+        }, 2500);
     }
 
     private setupAudio(): void {
@@ -616,10 +835,11 @@ class BabylonScene {
         // this.scene.onPointerObservable.clear();
         
         // Store the original scale of all interactive cubes for consistent reset
-        const originalScale = this.centerCube.scaling.clone();
-        const yellowOriginalScale = this.yellowCube.scaling.clone();
-        const blueOriginalScale = this.blueCube.scaling.clone();
-        const purpleOriginalScale = this.purpleCube.scaling.clone();
+        const originalScale = this.centerCube ? this.centerCube.scaling.clone() : Vector3.One();
+        const greenOriginalScale = this.greenCube ? this.greenCube.scaling.clone() : Vector3.One();
+        const yellowOriginalScale = this.yellowCube ? this.yellowCube.scaling.clone() : Vector3.One();
+        const blueOriginalScale = this.blueCube ? this.blueCube.scaling.clone() : Vector3.One();
+        const purpleOriginalScale = this.purpleCube ? this.purpleCube.scaling.clone() : Vector3.One();
         
         // Set up click detection using Babylon.js picking
         this.scene.onPointerObservable.add((pointerInfo) => {
@@ -631,63 +851,144 @@ class BabylonScene {
             if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit) {
                 const pickedMesh = pointerInfo.pickInfo.pickedMesh;
                 
-                // Check if the red center cube was clicked
-                if (pickedMesh === this.centerCube) {
-                    console.log('Red cube clicked! Playing boop sound...');
-                    this.playBoopSound();
+                // Handle main scene interactions
+                if (this.currentSceneType === 'main') {
+                    // Check if the red center cube was clicked
+                    if (pickedMesh === this.centerCube) {
+                        console.log('Red cube clicked! Playing boop sound...');
+                        this.playBoopSound();
+                        
+                        // Optional: Add a visual feedback (slight scale animation)
+                        this.centerCube.scaling = originalScale.scale(1.1);
+                        
+                        // Reset scale after a short time to the exact original size
+                        setTimeout(() => {
+                            this.centerCube.scaling = originalScale.clone();
+                        }, 100);
+                    }
                     
-                    // Optional: Add a visual feedback (slight scale animation)
-                    this.centerCube.scaling = originalScale.scale(1.1);
+                    // Check if the green cube was clicked
+                    if (pickedMesh === this.greenCube) {
+                        console.log('Green cube clicked! Transitioning to menu scene...');
+                        this.createMenuScene();
+                        
+                        // Add visual feedback to green cube before transition
+                        this.greenCube.scaling = greenOriginalScale.scale(1.3);
+                        
+                        // Reset scale after a short time
+                        setTimeout(() => {
+                            if (this.greenCube && this.currentSceneType === 'main') {
+                                this.greenCube.scaling = greenOriginalScale.clone();
+                            }
+                        }, 200);
+                    }
                     
-                    // Reset scale after a short time to the exact original size
-                    setTimeout(() => {
-                        this.centerCube.scaling = originalScale.clone();
-                    }, 100);
+                    // Check if the yellow cube was clicked
+                    if (pickedMesh === this.yellowCube) {
+                        console.log('Yellow cube clicked! Updating HTML content...');
+                        this.updateHTMLContent();
+                        
+                        // Add visual feedback to yellow cube
+                        this.yellowCube.scaling = yellowOriginalScale.scale(1.2);
+                        
+                        // Reset scale after a short time to the exact original size
+                        setTimeout(() => {
+                            this.yellowCube.scaling = yellowOriginalScale.clone();
+                        }, 150);
+                    }
+                    
+                    // Check if the blue cube was clicked
+                    if (pickedMesh === this.blueCube) {
+                        console.log('Blue cube clicked! Sending message to queue service...');
+                        this.sendToQueueService();
+                        
+                        // Add visual feedback to blue cube
+                        this.blueCube.scaling = blueOriginalScale.scale(1.15);
+                        
+                        // Reset scale after a short time to the exact original size
+                        setTimeout(() => {
+                            this.blueCube.scaling = blueOriginalScale.clone();
+                        }, 120);
+                    }
+                    
+                    // Check if the purple cube was clicked
+                    if (pickedMesh === this.purpleCube) {
+                        console.log('Purple cube clicked! Launching 2D scene...');
+                        this.launch2DScene();
+                        
+                        // Add visual feedback to purple cube
+                        this.purpleCube.scaling = purpleOriginalScale.scale(1.25);
+                        
+                        // Reset scale after a short time to the exact original size
+                        setTimeout(() => {
+                            this.purpleCube.scaling = purpleOriginalScale.clone();
+                        }, 180);
+                    }
                 }
                 
-                // Check if the yellow cube was clicked
-                if (pickedMesh === this.yellowCube) {
-                    console.log('Yellow cube clicked! Updating HTML content...');
-                    this.updateHTMLContent();
+                // Handle menu scene interactions
+                if (this.currentSceneType === 'menu') {
+                    // Check if back button was clicked
+                    if (pickedMesh === (this as any).backButton) {
+                        console.log('Back button clicked! Returning to main scene...');
+                        this.returnToMainScene();
+                    }
                     
-                    // Add visual feedback to yellow cube
-                    this.yellowCube.scaling = yellowOriginalScale.scale(1.2);
-                    
-                    // Reset scale after a short time to the exact original size
-                    setTimeout(() => {
-                        this.yellowCube.scaling = yellowOriginalScale.clone();
-                    }, 150);
-                }
-                
-                // Check if the blue cube was clicked
-                if (pickedMesh === this.blueCube) {
-                    console.log('Blue cube clicked! Sending message to queue service...');
-                    this.sendToQueueService();
-                    
-                    // Add visual feedback to blue cube
-                    this.blueCube.scaling = blueOriginalScale.scale(1.15);
-                    
-                    // Reset scale after a short time to the exact original size
-                    setTimeout(() => {
-                        this.blueCube.scaling = blueOriginalScale.clone();
-                    }, 120);
-                }
-                
-                // Check if the purple cube was clicked
-                if (pickedMesh === this.purpleCube) {
-                    console.log('Purple cube clicked! Launching 2D scene...');
-                    this.launch2DScene();
-                    
-                    // Add visual feedback to purple cube
-                    this.purpleCube.scaling = purpleOriginalScale.scale(1.25);
-                    
-                    // Reset scale after a short time to the exact original size
-                    setTimeout(() => {
-                        this.purpleCube.scaling = purpleOriginalScale.clone();
-                    }, 180);
+                    // Handle menu option clicks
+                    if (pickedMesh && pickedMesh.name === 'option1') {
+                        console.log('Settings option clicked!');
+                        this.showMenuOptionFeedback('⚙️ Settings - Coming Soon!');
+                    } else if (pickedMesh && pickedMesh.name === 'option2') {
+                        console.log('Projects option clicked!');
+                        this.showMenuOptionFeedback('📁 Projects - Feature in Development!');
+                    } else if (pickedMesh && pickedMesh.name === 'option3') {
+                        console.log('About option clicked!');
+                        this.showMenuOptionFeedback('ℹ️ About - Multi-Modal 3D Demo by GuiWorld!');
+                    }
                 }
             }
         });
+    }
+
+    private showMenuOptionFeedback(message: string): void {
+        // Create or update a feedback div for menu options
+        let feedbackDiv = document.getElementById('menu-option-feedback');
+        
+        if (!feedbackDiv) {
+            feedbackDiv = document.createElement('div');
+            feedbackDiv.id = 'menu-option-feedback';
+            feedbackDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%) translateY(-100%);
+                background: linear-gradient(135deg, #2196F3, #1976D2);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 12px;
+                font-family: Arial, sans-serif;
+                font-weight: bold;
+                font-size: 16px;
+                z-index: 1500;
+                transition: transform 0.3s ease-in-out;
+                box-shadow: 0 6px 20px rgba(33, 150, 243, 0.3);
+                text-align: center;
+                max-width: 400px;
+            `;
+            document.body.appendChild(feedbackDiv);
+        }
+
+        feedbackDiv.textContent = message;
+
+        // Animate in
+        setTimeout(() => {
+            feedbackDiv.style.transform = 'translateX(-50%) translateY(0)';
+        }, 10);
+
+        // Hide after 3 seconds
+        setTimeout(() => {
+            feedbackDiv.style.transform = 'translateX(-50%) translateY(-100%)';
+        }, 3000);
     }
 
     private setupKeyboardControls(): void {

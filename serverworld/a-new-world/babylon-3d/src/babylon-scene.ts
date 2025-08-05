@@ -680,14 +680,29 @@ class BabylonScene {
         let animationId: number;
         let keys: { [key: string]: boolean } = {};
         
-        // Menu buttons positioned around the edges
+        // D-pad controls configuration
+        let dPad = {
+            centerX: 120,
+            centerY: canvas.height - 250,
+            buttonSize: 35,
+            spacing: 45,
+            pressedButton: null as string | null,
+            buttons: {
+                up: { x: 120, y: canvas.height - 295, direction: 'up', key: 'ArrowUp' },
+                down: { x: 120, y: canvas.height - 205, direction: 'down', key: 'ArrowDown' },
+                left: { x: 75, y: canvas.height - 250, direction: 'left', key: 'ArrowLeft' },
+                right: { x: 165, y: canvas.height - 250, direction: 'right', key: 'ArrowRight' }
+            }
+        };
+        
+        // Menu buttons positioned on the right side of the canvas
         let menuButtons = [
-            { x: 100, y: 100, emoji: '🚀', label: 'Rocket', color: '#ff6b6b' },
-            { x: canvas.width - 100, y: 100, emoji: '🎮', label: 'Game', color: '#4ecdc4' },
-            { x: 100, y: canvas.height - 100, emoji: '🎨', label: 'Art', color: '#45b7d1' },
-            { x: canvas.width - 100, y: canvas.height - 100, emoji: '🎵', label: 'Music', color: '#f9ca24' },
-            { x: canvas.width / 2, y: 80, emoji: '🌟', label: 'Star', color: '#f0932b' },
-            { x: canvas.width / 2, y: canvas.height - 80, emoji: '🔥', label: 'Fire', color: '#eb4d4b' }
+            { x: canvas.width - 100, y: 120, emoji: '🚀', label: 'Rocket', color: '#ff6b6b' },
+            { x: canvas.width - 100, y: 220, emoji: '🎮', label: 'Game', color: '#4ecdc4' },
+            { x: canvas.width - 100, y: 320, emoji: '🎨', label: 'Art', color: '#45b7d1' },
+            { x: canvas.width - 100, y: 420, emoji: '🎵', label: 'Music', color: '#f9ca24' },
+            { x: canvas.width - 100, y: 520, emoji: '🌟', label: 'Star', color: '#f0932b' },
+            { x: canvas.width - 100, y: 620, emoji: '🔥', label: 'Fire', color: '#eb4d4b' }
         ];
         
         // Add keyboard event listeners
@@ -704,12 +719,26 @@ class BabylonScene {
         document.addEventListener('keydown', keyDownHandler);
         document.addEventListener('keyup', keyUpHandler);
         
-        // Mouse click handler for buttons
-        canvas.addEventListener('click', (e) => {
-            const clickX = e.clientX;
-            const clickY = e.clientY;
+        // Mouse/touch handlers for D-pad and buttons
+        const mouseDownHandler = (e: MouseEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
             
-            // Check if any button was clicked
+            // Check D-pad button clicks
+            Object.entries(dPad.buttons).forEach(([direction, button]) => {
+                const distance = Math.sqrt(
+                    Math.pow(clickX - button.x, 2) + Math.pow(clickY - button.y, 2)
+                );
+                
+                if (distance < dPad.buttonSize) {
+                    dPad.pressedButton = direction;
+                    keys[button.key] = true;
+                    e.preventDefault();
+                }
+            });
+            
+            // Check if any emoji button was clicked
             menuButtons.forEach(button => {
                 const distance = Math.sqrt(
                     Math.pow(clickX - button.x, 2) + Math.pow(clickY - button.y, 2)
@@ -720,7 +749,67 @@ class BabylonScene {
                     console.log(`Emoji changed to ${button.emoji} (${button.label})`);
                 }
             });
-        });
+        };
+        
+        const mouseUpHandler = (e: MouseEvent) => {
+            // Release all D-pad buttons
+            if (dPad.pressedButton) {
+                const button = dPad.buttons[dPad.pressedButton as keyof typeof dPad.buttons];
+                keys[button.key] = false;
+                dPad.pressedButton = null;
+            }
+        };
+        
+        canvas.addEventListener('mousedown', mouseDownHandler);
+        canvas.addEventListener('mouseup', mouseUpHandler);
+        canvas.addEventListener('mouseleave', mouseUpHandler); // Release buttons when mouse leaves canvas
+        
+        // Touch event handlers for mobile support
+        const touchStartHandler = (e: TouchEvent) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const touchX = touch.clientX - rect.left;
+            const touchY = touch.clientY - rect.top;
+            
+            // Check D-pad button touches
+            Object.entries(dPad.buttons).forEach(([direction, button]) => {
+                const distance = Math.sqrt(
+                    Math.pow(touchX - button.x, 2) + Math.pow(touchY - button.y, 2)
+                );
+                
+                if (distance < dPad.buttonSize) {
+                    dPad.pressedButton = direction;
+                    keys[button.key] = true;
+                }
+            });
+            
+            // Check emoji button touches
+            menuButtons.forEach(button => {
+                const distance = Math.sqrt(
+                    Math.pow(touchX - button.x, 2) + Math.pow(touchY - button.y, 2)
+                );
+                
+                if (distance < 40) {
+                    player.emoji = button.emoji;
+                    console.log(`Emoji changed to ${button.emoji} (${button.label})`);
+                }
+            });
+        };
+        
+        const touchEndHandler = (e: TouchEvent) => {
+            e.preventDefault();
+            // Release all D-pad buttons
+            if (dPad.pressedButton) {
+                const button = dPad.buttons[dPad.pressedButton as keyof typeof dPad.buttons];
+                keys[button.key] = false;
+                dPad.pressedButton = null;
+            }
+        };
+        
+        canvas.addEventListener('touchstart', touchStartHandler);
+        canvas.addEventListener('touchend', touchEndHandler);
+        canvas.addEventListener('touchcancel', touchEndHandler);
         
         // Animation loop
         const animate = () => {
@@ -729,7 +818,7 @@ class BabylonScene {
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Handle player movement
-            const moveSpeed = 5;
+            const moveSpeed = 15;
             if (keys['ArrowLeft'] || keys['KeyA']) {
                 player.x = Math.max(player.size, player.x - moveSpeed);
             }
@@ -787,6 +876,55 @@ class BabylonScene {
                 }
             });
             
+            // Draw D-pad controller
+            // D-pad background circle
+            ctx.beginPath();
+            ctx.arc(dPad.centerX, dPad.centerY, 60, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(52, 73, 94, 0.8)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw D-pad buttons
+            Object.entries(dPad.buttons).forEach(([direction, button]) => {
+                const isPressed = dPad.pressedButton === direction || keys[button.key];
+                
+                // Button background
+                ctx.beginPath();
+                ctx.arc(button.x, button.y, dPad.buttonSize, 0, Math.PI * 2);
+                ctx.fillStyle = isPressed ? '#3498db' : 'rgba(149, 165, 166, 0.9)';
+                ctx.fill();
+                
+                // Button border
+                ctx.beginPath();
+                ctx.arc(button.x, button.y, dPad.buttonSize, 0, Math.PI * 2);
+                ctx.strokeStyle = isPressed ? '#ffffff' : 'rgba(127, 140, 141, 1)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Arrow symbol
+                ctx.fillStyle = isPressed ? '#ffffff' : '#2c3e50';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                const arrows = {
+                    up: '▲',
+                    down: '▼',
+                    left: '◀',
+                    right: '▶'
+                };
+                
+                ctx.fillText(arrows[direction as keyof typeof arrows], button.x, button.y);
+            });
+            
+            // D-pad label
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fillText('MOVE', dPad.centerX, dPad.centerY + 90);
+            
             // Draw player emoji
             ctx.font = `${player.size}px Arial`;
             ctx.textAlign = 'center';
@@ -809,7 +947,7 @@ class BabylonScene {
             
             ctx.font = '16px Arial';
             ctx.fillStyle = '#ecf0f1';
-            ctx.fillText('Use WASD or Arrow Keys to move • Click buttons to change emoji', canvas.width / 2, canvas.height - 30);
+            ctx.fillText('Use WASD, Arrow Keys, or D-pad to move • Click buttons to change emoji', canvas.width / 2, canvas.height - 30);
             
             // Draw current emoji info
             ctx.font = '18px Arial';
@@ -828,6 +966,12 @@ class BabylonScene {
             cancelAnimationFrame(animationId);
             document.removeEventListener('keydown', keyDownHandler);
             document.removeEventListener('keyup', keyUpHandler);
+            canvas.removeEventListener('mousedown', mouseDownHandler);
+            canvas.removeEventListener('mouseup', mouseUpHandler);
+            canvas.removeEventListener('mouseleave', mouseUpHandler);
+            canvas.removeEventListener('touchstart', touchStartHandler);
+            canvas.removeEventListener('touchend', touchEndHandler);
+            canvas.removeEventListener('touchcancel', touchEndHandler);
         });
     }
 

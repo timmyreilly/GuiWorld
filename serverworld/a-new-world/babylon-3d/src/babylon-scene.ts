@@ -665,109 +665,157 @@ class BabylonScene {
         document.addEventListener('keydown', escHandler);
         
         // Show launch feedback
-        this.show2DSceneFeedback('🎨 2D Scene Launched! Press ESC or click ✕ to close', 'success');
+        this.show2DSceneFeedback('� Emoji Adventure Launched! Use WASD or arrows to move, click buttons to change emoji!', 'success');
     }
 
     private init2DScene(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): void {
         // 2D Scene variables
-        let particles: Array<{x: number, y: number, vx: number, vy: number, color: string, size: number}> = [];
-        let mouseX = 0;
-        let mouseY = 0;
+        let player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            emoji: '😊',
+            size: 40
+        };
+        
         let animationId: number;
+        let keys: { [key: string]: boolean } = {};
         
-        // Create initial particles
-        for (let i = 0; i < 50; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                vx: (Math.random() - 0.5) * 4,
-                vy: (Math.random() - 0.5) * 4,
-                color: `hsl(${Math.random() * 360}, 70%, 60%)`,
-                size: Math.random() * 8 + 2
-            });
-        }
+        // Menu buttons positioned around the edges
+        let menuButtons = [
+            { x: 100, y: 100, emoji: '🚀', label: 'Rocket', color: '#ff6b6b' },
+            { x: canvas.width - 100, y: 100, emoji: '🎮', label: 'Game', color: '#4ecdc4' },
+            { x: 100, y: canvas.height - 100, emoji: '🎨', label: 'Art', color: '#45b7d1' },
+            { x: canvas.width - 100, y: canvas.height - 100, emoji: '🎵', label: 'Music', color: '#f9ca24' },
+            { x: canvas.width / 2, y: 80, emoji: '🌟', label: 'Star', color: '#f0932b' },
+            { x: canvas.width / 2, y: canvas.height - 80, emoji: '🔥', label: 'Fire', color: '#eb4d4b' }
+        ];
         
-        // Mouse interaction
-        canvas.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-        });
+        // Add keyboard event listeners
+        const keyDownHandler = (e: KeyboardEvent) => {
+            keys[e.code] = true;
+            e.preventDefault();
+        };
         
-        // Click to add particles
+        const keyUpHandler = (e: KeyboardEvent) => {
+            keys[e.code] = false;
+            e.preventDefault();
+        };
+        
+        document.addEventListener('keydown', keyDownHandler);
+        document.addEventListener('keyup', keyUpHandler);
+        
+        // Mouse click handler for buttons
         canvas.addEventListener('click', (e) => {
-            for (let i = 0; i < 5; i++) {
-                particles.push({
-                    x: e.clientX + (Math.random() - 0.5) * 100,
-                    y: e.clientY + (Math.random() - 0.5) * 100,
-                    vx: (Math.random() - 0.5) * 8,
-                    vy: (Math.random() - 0.5) * 8,
-                    color: `hsl(${Math.random() * 360}, 80%, 70%)`,
-                    size: Math.random() * 12 + 3
-                });
-            }
+            const clickX = e.clientX;
+            const clickY = e.clientY;
+            
+            // Check if any button was clicked
+            menuButtons.forEach(button => {
+                const distance = Math.sqrt(
+                    Math.pow(clickX - button.x, 2) + Math.pow(clickY - button.y, 2)
+                );
+                
+                if (distance < 40) {
+                    player.emoji = button.emoji;
+                    console.log(`Emoji changed to ${button.emoji} (${button.label})`);
+                }
+            });
         });
         
         // Animation loop
         const animate = () => {
-            // Clear canvas with fade effect
-            ctx.fillStyle = 'rgba(102, 126, 234, 0.1)';
+            // Clear canvas with solid background
+            ctx.fillStyle = '#2c3e50';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Draw title
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.font = 'bold 32px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('🎨 Interactive 2D Scene', canvas.width / 2, 60);
+            // Handle player movement
+            const moveSpeed = 5;
+            if (keys['ArrowLeft'] || keys['KeyA']) {
+                player.x = Math.max(player.size, player.x - moveSpeed);
+            }
+            if (keys['ArrowRight'] || keys['KeyD']) {
+                player.x = Math.min(canvas.width - player.size, player.x + moveSpeed);
+            }
+            if (keys['ArrowUp'] || keys['KeyW']) {
+                player.y = Math.max(player.size, player.y - moveSpeed);
+            }
+            if (keys['ArrowDown'] || keys['KeyS']) {
+                player.y = Math.min(canvas.height - player.size, player.y + moveSpeed);
+            }
             
-            ctx.font = '16px Arial';
-            ctx.fillText('Click anywhere to create particles! Move mouse to attract them.', canvas.width / 2, 90);
-            
-            // Update and draw particles
-            particles.forEach((particle, index) => {
-                // Mouse attraction
-                const dx = mouseX - particle.x;
-                const dy = mouseY - particle.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < 200) {
-                    const force = (200 - distance) / 200 * 0.5;
-                    particle.vx += (dx / distance) * force;
-                    particle.vy += (dy / distance) * force;
-                }
-                
-                // Apply velocity
-                particle.x += particle.vx;
-                particle.y += particle.vy;
-                
-                // Damping
-                particle.vx *= 0.99;
-                particle.vy *= 0.99;
-                
-                // Bounce off edges
-                if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -0.8;
-                if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -0.8;
-                
-                // Keep in bounds
-                particle.x = Math.max(0, Math.min(canvas.width, particle.x));
-                particle.y = Math.max(0, Math.min(canvas.height, particle.y));
-                
-                // Draw particle
+            // Draw menu buttons
+            menuButtons.forEach(button => {
+                // Draw button background
                 ctx.beginPath();
-                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-                ctx.fillStyle = particle.color;
+                ctx.arc(button.x, button.y, 35, 0, Math.PI * 2);
+                ctx.fillStyle = button.color;
                 ctx.fill();
                 
-                // Draw glow effect
+                // Draw button border
                 ctx.beginPath();
-                ctx.arc(particle.x, particle.y, particle.size * 2, 0, Math.PI * 2);
-                ctx.fillStyle = particle.color.replace('60%)', '20%)');
-                ctx.fill();
+                ctx.arc(button.x, button.y, 35, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
                 
-                // Remove old particles
-                if (particles.length > 200 && Math.random() < 0.01) {
-                    particles.splice(index, 1);
+                // Draw button emoji
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(button.emoji, button.x, button.y);
+                
+                // Draw button label
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(button.label, button.x, button.y + 55);
+                
+                // Check for collision with player
+                const distance = Math.sqrt(
+                    Math.pow(player.x - button.x, 2) + Math.pow(player.y - button.y, 2)
+                );
+                
+                if (distance < 60) {
+                    // Highlight button when player is near
+                    ctx.beginPath();
+                    ctx.arc(button.x, button.y, 40, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 4;
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
                 }
             });
+            
+            // Draw player emoji
+            ctx.font = `${player.size}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(player.emoji, player.x, player.y);
+            
+            // Draw player glow effect
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.size / 2 + 5, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Draw instructions
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('🎮 Emoji Adventure', canvas.width / 2, 40);
+            
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#ecf0f1';
+            ctx.fillText('Use WASD or Arrow Keys to move • Click buttons to change emoji', canvas.width / 2, canvas.height - 30);
+            
+            // Draw current emoji info
+            ctx.font = '18px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(`Current: ${player.emoji}`, 20, canvas.height - 60);
             
             animationId = requestAnimationFrame(animate);
         };
@@ -778,6 +826,8 @@ class BabylonScene {
         // Cleanup function (called when scene closes)
         canvas.addEventListener('remove', () => {
             cancelAnimationFrame(animationId);
+            document.removeEventListener('keydown', keyDownHandler);
+            document.removeEventListener('keyup', keyUpHandler);
         });
     }
 

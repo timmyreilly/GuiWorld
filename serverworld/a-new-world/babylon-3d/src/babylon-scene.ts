@@ -674,7 +674,13 @@ class BabylonScene {
             x: canvas.width / 2,
             y: canvas.height / 2,
             emoji: '😊',
-            size: 40
+            size: 40,
+            // Physics properties
+            velocityX: 0,
+            velocityY: 0,
+            acceleration: 0.8,      // How fast player accelerates
+            friction: 0.85,         // How much momentum is retained (0.85 = 15% loss per frame)
+            maxSpeed: 12            // Maximum velocity in any direction
         };
         
         let animationId: number;
@@ -817,20 +823,74 @@ class BabylonScene {
             ctx.fillStyle = '#2c3e50';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Handle player movement
-            const moveSpeed = 15;
+            // Handle player physics-based movement
+            let inputX = 0;
+            let inputY = 0;
+            
+            // Collect input directions
             if (keys['ArrowLeft'] || keys['KeyA']) {
-                player.x = Math.max(player.size, player.x - moveSpeed);
+                inputX = -1;
             }
             if (keys['ArrowRight'] || keys['KeyD']) {
-                player.x = Math.min(canvas.width - player.size, player.x + moveSpeed);
+                inputX = 1;
             }
             if (keys['ArrowUp'] || keys['KeyW']) {
-                player.y = Math.max(player.size, player.y - moveSpeed);
+                inputY = -1;
             }
             if (keys['ArrowDown'] || keys['KeyS']) {
-                player.y = Math.min(canvas.height - player.size, player.y + moveSpeed);
+                inputY = 1;
             }
+            
+            // Apply acceleration based on input
+            if (inputX !== 0) {
+                player.velocityX += inputX * player.acceleration;
+            }
+            if (inputY !== 0) {
+                player.velocityY += inputY * player.acceleration;
+            }
+            
+            // Apply friction when no input
+            if (inputX === 0) {
+                player.velocityX *= player.friction;
+            }
+            if (inputY === 0) {
+                player.velocityY *= player.friction;
+            }
+            
+            // Limit maximum speed
+            const currentSpeed = Math.sqrt(player.velocityX * player.velocityX + player.velocityY * player.velocityY);
+            if (currentSpeed > player.maxSpeed) {
+                const ratio = player.maxSpeed / currentSpeed;
+                player.velocityX *= ratio;
+                player.velocityY *= ratio;
+            }
+            
+            // Update position based on velocity
+            player.x += player.velocityX;
+            player.y += player.velocityY;
+            
+            // Boundary collision with bounce-back effect
+            const margin = player.size;
+            if (player.x < margin) {
+                player.x = margin;
+                player.velocityX = Math.abs(player.velocityX) * 0.3; // Bounce with reduced velocity
+            }
+            if (player.x > canvas.width - margin) {
+                player.x = canvas.width - margin;
+                player.velocityX = -Math.abs(player.velocityX) * 0.3;
+            }
+            if (player.y < margin) {
+                player.y = margin;
+                player.velocityY = Math.abs(player.velocityY) * 0.3;
+            }
+            if (player.y > canvas.height - margin) {
+                player.y = canvas.height - margin;
+                player.velocityY = -Math.abs(player.velocityY) * 0.3;
+            }
+            
+            // Stop very small velocities to prevent endless tiny movements
+            if (Math.abs(player.velocityX) < 0.01) player.velocityX = 0;
+            if (Math.abs(player.velocityY) < 0.01) player.velocityY = 0;
             
             // Draw menu buttons
             menuButtons.forEach(button => {
@@ -925,19 +985,32 @@ class BabylonScene {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             ctx.fillText('MOVE', dPad.centerX, dPad.centerY + 90);
             
-            // Draw player emoji
-            ctx.font = `${player.size}px Arial`;
+            // Draw player emoji with dynamic scaling based on speed
+            const speedFactor = Math.min(currentSpeed / player.maxSpeed, 1);
+            const dynamicSize = player.size + (speedFactor * 5); // Slightly larger when moving fast
+            
+            ctx.font = `${dynamicSize}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = '#ffffff';
             ctx.fillText(player.emoji, player.x, player.y);
             
-            // Draw player glow effect
+            // Draw player glow effect (stronger when moving)
+            const glowIntensity = 0.2 + (speedFactor * 0.3);
             ctx.beginPath();
             ctx.arc(player.x, player.y, player.size / 2 + 5, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.strokeStyle = `rgba(255, 255, 255, ${glowIntensity})`;
             ctx.lineWidth = 3;
             ctx.stroke();
+            
+            // Add motion trail effect when moving fast
+            if (currentSpeed > 3) {
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, player.size / 2 + 10, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${speedFactor * 0.1})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
             
             // Draw instructions
             ctx.font = 'bold 24px Arial';
@@ -949,11 +1022,15 @@ class BabylonScene {
             ctx.fillStyle = '#ecf0f1';
             ctx.fillText('Use WASD, Arrow Keys, or D-pad to move • Click buttons to change emoji', canvas.width / 2, canvas.height - 30);
             
-            // Draw current emoji info
+            // Draw current emoji and speed info
             ctx.font = '18px Arial';
             ctx.textAlign = 'left';
             ctx.fillStyle = '#ffffff';
             ctx.fillText(`Current: ${player.emoji}`, 20, canvas.height - 60);
+            
+            // Show speed for debugging/fun
+            const speedDisplay = Math.round(currentSpeed * 10) / 10;
+            ctx.fillText(`Speed: ${speedDisplay}`, 20, canvas.height - 35);
             
             animationId = requestAnimationFrame(animate);
         };

@@ -1,0 +1,653 @@
+/* Server World 3D Styles */
+
+/* CSS Compatibility Fixes */
+body {
+    /* Add modern text-size-adjust property for better browser support */
+    /* -webkit-text-size-adjust: 100%; */
+    text-size-adjust: 100%;
+}
+
+/* Simple 3D Styles */
+.simple3d-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #0a0a0a;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.simple3d-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: #1a1a2e;
+    border-bottom: 2px solid #16213e;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.simple3d-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 300;
+    background: linear-gradient(45deg, #4CAF50, #2196F3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.simple3d-controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.simple3d-controls .btn {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.simple3d-controls .btn-primary {
+    background: #007acc;
+    color: white;
+}
+
+.simple3d-controls .btn-primary:hover {
+    background: #005a9e;
+}
+
+.simple3d-controls .btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.simple3d-controls .btn-success:hover {
+    background: #1e7e34;
+}
+
+.simple3d-controls .btn-warning {
+    background: #ffc107;
+    color: black;
+}
+
+.simple3d-controls .btn-warning:hover {
+    background: #e0a800;
+}
+
+.webgl-status {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: rgba(33, 150, 243, 0.2);
+    border: 1px solid #2196F3;
+    color: #2196F3;
+}
+
+.simple3d-main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+#simple3d-canvas {
+    flex: 1;
+    background: #000;
+    cursor: grab;
+}
+
+#simple3d-canvas:active {
+    cursor: grabbing;
+}
+
+.simple3d-info {
+    width: 350px;
+    background: #16213e;
+    padding: 1.5rem;
+    overflow-y: auto;
+    border-left: 2px solid #0f3460;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.simple3d-info h3 {
+    margin: 0 0 1rem 0;
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 500;
+    border-bottom: 2px solid #0f3460;
+    padding-bottom: 0.5rem;
+}
+
+.simple3d-info p {
+    margin: 0.5rem 0;
+    color: #cccccc;
+    font-size: 0.9rem;
+}
+
+.simple3d-info strong {
+    color: #ffffff;
+}
+
+.simple3d-info ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    color: #cccccc;
+}
+
+.simple3d-info li {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .simple3d-info {
+        width: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .simple3d-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .simple3d-main {
+        flex-direction: column;
+    }
+    
+    .simple3d-info {
+        width: 100%;
+        height: 40vh;
+        border-left: none;
+        border-top: 2px solid #0f3460;
+    }
+    
+    #simple3d-canvas {
+        height: 60vh;
+    }
+}
+
+.world3d-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #0a0a0a;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Debug Controls */
+.debug-btn {
+    background: #007acc;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+
+.debug-btn:hover {
+    background: #005a9e;
+}
+
+.debug-btn:active {
+    background: #004578;
+}
+
+.world3d-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: #1a1a2e;
+    border-bottom: 2px solid #16213e;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.world3d-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 300;
+    background: linear-gradient(45deg, #4CAF50, #2196F3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.world3d-controls {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.connection-status {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.connection-status.connected {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid #4CAF50;
+    color: #4CAF50;
+}
+
+.connection-status.disconnected {
+    background: rgba(244, 67, 54, 0.2);
+    border: 1px solid #F44336;
+    color: #F44336;
+}
+
+.server-count {
+    background: rgba(33, 150, 243, 0.2);
+    border: 1px solid #2196F3;
+    color: #2196F3;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.world3d-main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.world3d-canvas {
+    flex: 1;
+    position: relative;
+    background: #000;
+}
+
+.world3d-sidebar {
+    width: 350px;
+    background: #16213e;
+    padding: 1.5rem;
+    overflow-y: auto;
+    border-left: 2px solid #0f3460;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.world3d-sidebar h3 {
+    margin: 0 0 1rem 0;
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 500;
+    border-bottom: 2px solid #0f3460;
+    padding-bottom: 0.5rem;
+}
+
+.server-list {
+    margin-bottom: 2rem;
+}
+
+.server-item {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.server-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateX(5px);
+}
+
+.server-item.healthy {
+    border-left-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.server-item.warning {
+    border-left-color: #FF9800;
+    background: rgba(255, 152, 0, 0.1);
+}
+
+.server-item.critical {
+    border-left-color: #F44336;
+    background: rgba(244, 67, 54, 0.1);
+}
+
+.server-item.offline {
+    border-left-color: #9E9E9E;
+    background: rgba(158, 158, 158, 0.1);
+}
+
+.server-item.maintenance {
+    border-left-color: #2196F3;
+    background: rgba(33, 150, 243, 0.1);
+}
+
+.server-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.server-metrics {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: #cccccc;
+    margin-bottom: 0.5rem;
+}
+
+.server-alerts {
+    font-size: 0.8rem;
+}
+
+.server-alerts .alert {
+    display: block;
+    color: #FF9800;
+    margin-bottom: 0.2rem;
+}
+
+.no-servers {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 2rem;
+}
+
+.character-info {
+    margin-bottom: 2rem;
+}
+
+.character-position {
+    background: rgba(33, 150, 243, 0.1);
+    padding: 0.8rem;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.movement-instructions h4 {
+    margin: 0 0 0.5rem 0;
+    color: #ffffff;
+    font-size: 1rem;
+}
+
+.movement-instructions ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    color: #cccccc;
+}
+
+.movement-instructions li {
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+}
+
+.world-stats .stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.world-stats .stat-item:last-child {
+    border-bottom: none;
+}
+
+.world-stats .healthy { color: #4CAF50; font-weight: 600; }
+.world-stats .warning { color: #FF9800; font-weight: 600; }
+.world-stats .critical { color: #F44336; font-weight: 600; }
+.world-stats .offline { color: #9E9E9E; font-weight: 600; }
+
+/* Server Modal Styles */
+.server-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.server-modal-content {
+    background: #1a1a2e;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid #16213e;
+}
+
+.server-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: #16213e;
+    border-bottom: 1px solid #0f3460;
+}
+
+.server-modal-header h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    color: #cccccc;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.close-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.server-modal-body {
+    padding: 2rem;
+    overflow-y: auto;
+    max-height: calc(80vh - 100px);
+}
+
+.detail-group {
+    margin-bottom: 2rem;
+}
+
+.detail-group h3 {
+    margin: 0 0 1rem 0;
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 500;
+    border-bottom: 2px solid #0f3460;
+    padding-bottom: 0.5rem;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    border-radius: 25px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.healthy {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+}
+
+.status-badge.warning {
+    background: rgba(255, 152, 0, 0.2);
+    color: #FF9800;
+    border: 1px solid #FF9800;
+}
+
+.status-badge.critical {
+    background: rgba(244, 67, 54, 0.2);
+    color: #F44336;
+    border: 1px solid #F44336;
+}
+
+.status-badge.offline {
+    background: rgba(158, 158, 158, 0.2);
+    color: #9E9E9E;
+    border: 1px solid #9E9E9E;
+}
+
+.status-badge.maintenance {
+    background: rgba(33, 150, 243, 0.2);
+    color: #2196F3;
+    border: 1px solid #2196F3;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.metric {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.metric span:first-child {
+    color: #cccccc;
+    font-size: 0.9rem;
+}
+
+.metric span:last-child {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.alerts-list {
+    background: rgba(255, 152, 0, 0.1);
+    border: 1px solid #FF9800;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.alert-item {
+    color: #FF9800;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.alert-item:last-child {
+    margin-bottom: 0;
+}
+
+.custom-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+}
+
+.custom-metric {
+    background: rgba(33, 150, 243, 0.1);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    padding: 0.8rem;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.custom-metric span:first-child {
+    color: #2196F3;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.custom-metric span:last-child {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .world3d-sidebar {
+        width: 300px;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .custom-metrics {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .world3d-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .world3d-controls {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .world3d-main {
+        flex-direction: column;
+    }
+    
+    .world3d-sidebar {
+        width: 100%;
+        height: 40vh;
+        border-left: none;
+        border-top: 2px solid #0f3460;
+    }
+    
+    .server-modal-content {
+        width: 95%;
+        margin: 1rem;
+    }
+    
+    .server-modal-header {
+        padding: 1rem;
+    }
+    
+    .server-modal-body {
+        padding: 1rem;
+    }
+}
